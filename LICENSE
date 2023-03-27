@@ -1,4 +1,5 @@
-MIT License
+lr-inaturalist-publish
+======================
 
 Copyright (c) 2023 Russell Cloran
 
@@ -19,3 +20,60 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+Included software
+=================
+
+Some software included in this repository or distribution is authored by others,
+and may have a different license. The files have been included largely
+unmodified from their original source, except to add copyright and licensing
+information where necessary.
+
+JSON.lua
+--------
+
+Copyright 2010-2017 Jeffrey Friedl
+
+Obtained from: http://regex.info/blog/lua/json
+
+License:
+
+```
+-- This code is released under a Creative Commons CC-BY "Attribution" License:
+-- http://creativecommons.org/licenses/by/3.0/deed.en_US
+--
+-- It can be used for any purpose so long as:
+--    1) the copyright notice above is maintained
+--    2) the web-page links above are maintained
+--    3) the 'AUTHOR_NOTE' string below is maintained
+--
+local VERSION = '20211016.28' -- version history at end of file
+local AUTHOR_NOTE = "-[ JSON.lua package by Jeffrey Friedl (http://regex.info/blog/lua/json) version 20211016.28 ]-"
+```
+
+sha2.lua
+--------
+
+Copyright Egor Skriptunoff
+
+Obtained from: https://github.com/Egor-Skriptunoff/pure_lua_SHA
+
+License: MIT (the same license as Lua itself)
+
+strict.lua
+----------
+
+Copyright © 1994–2022 Lua.org, PUC-Rio.
+
+Obtained from: https://www.lua.org/
+
+License: MIT License (https://www.lua.org/license.html)
+
+Resources/inaturalist-icon.png , Resources/inaturalist-icon@2x.png
+------------------------------------------------------------------
+
+Copyright California Academy of Sciences
+
+Obtained from: https://github.com/inaturalist/inaturalist/blob/0151368f50cbe060e351efd40d3cb518237a13af/public/favicon.ico
+
+License: MIT License
