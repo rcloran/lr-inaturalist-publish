@@ -2,6 +2,7 @@ require("strict")
 
 local logger = import("LrLogger")("lr-inaturalist-publish")
 local LrFileUtils = import("LrFileUtils")
+local LrHttp = import("LrHttp")
 local LrTasks = import("LrTasks")
 local LrView = import("LrView")
 
@@ -13,7 +14,7 @@ local exportServiceProvider = {
 	supportsIncrementalPublish = "only",
 	exportPresetFields = {
 		{ key = "accessToken", default = "" },
-		-- { key = "login", default = "" },
+		{ key = "login", default = "" },
 	},
 	hideSections = {
 		"exportLocation",
@@ -26,7 +27,8 @@ local exportServiceProvider = {
 	hidePrintResolution = true,
 	canExportVideo = false,
 	-- Publish provider options
-	small_icon = 'Resources/inaturalist-icon.png',
+	small_icon = "Resources/inaturalist-icon.png",
+	titleForGoToPublishedCollection = "Go to observations in iNaturalist",
 }
 
 local function updateCantExportBecause(propertyTable)
@@ -79,7 +81,6 @@ function exportServiceProvider.processRenderedPhotos(functionContext, exportCont
 	local progressScope =
 		exportContext:configureProgress({ title = string.format("Publishing %i photos to iNaturalist", nPhotos) })
 
-
 	local api = INaturalistAPI:new(exportSettings.accessToken)
 	for i, rendition in exportContext:renditions({ stopIfCanceled = true }) do
 		progressScope:setPortionComplete((i - 1) / nPhotos)
@@ -106,11 +107,11 @@ function exportServiceProvider.processRenderedPhotos(functionContext, exportCont
 				-- photo response doesn't include the photo ID
 				local observation = photo.to_observation
 				observation.local_photos = {}
-				observation.local_photos["0"] = {photo.id}
+				observation.local_photos["0"] = { photo.id }
 				observation = api:createObservation(observation)
 
 				rendition:recordPublishedPhotoId(photo.uuid)
-				rendition:recordPublishedPhotoUrl("https://www.inaturalist.org/photos/"..photo.id)
+				rendition:recordPublishedPhotoUrl("https://www.inaturalist.org/photos/" .. photo.id)
 			end
 		end
 	end
@@ -135,6 +136,10 @@ function exportServiceProvider.getCollectionBehaviorInfo(publishSettings)
 		canAddCollection = false,
 		maxCollectionSetDepth = 0,
 	}
+end
+
+function exportServiceProvider.goToPublishedCollection(publishSettings, info)
+	LrHttp.openUrlInBrowser("https://www.inaturalist.org/observations/" .. publishSettings.login)
 end
 
 -- function exportServiceProvider.canAddCommentsToService(publishSettings)

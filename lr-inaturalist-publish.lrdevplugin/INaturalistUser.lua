@@ -13,22 +13,13 @@ INaturalistUser = {}
 
 function INaturalistUser.clearLoginData(propertyTable)
 	propertyTable.accessToken = nil
-	
+
 	INaturalistUser.verifyLogin(propertyTable)
 end
 
 function INaturalistUser.verifyLogin(propertyTable)
 	if propertyTable.accessToken and string.len(propertyTable.accessToken) > 0 then
-		if propertyTable.user then
-			propertyTable.accountStatus = "Logged in as " .. propertyTable.user
-		else
-			propertyTable.accountStatus = "Logged in"
-			LrTasks.startAsyncTask(function()
-				local api = INaturalistAPI:new(propertyTable.accessToken)
-				propertyTable.user = api:getUser().login
-				INaturalistUser.verifyLogin(propertyTable)
-			end)
-		end
+		propertyTable.accountStatus = "Logged in as " .. propertyTable.login
 		propertyTable.loginButtonTitle = "Log out"
 		propertyTable.loginButtonEnabled = false
 	else
@@ -93,6 +84,8 @@ function INaturalistUser.handleAuthRedirect(url)
 		LrTasks.startAsyncTask(function()
 			local accessToken = INaturalistUser.getToken(params["code"], propertyTable.pkceChallenge)
 			propertyTable.pkceChallenge = nil
+			local api = INaturalistAPI:new(accessToken)
+			propertyTable.login = api:getUser().login
 			propertyTable.accessToken = accessToken
 			INaturalistUser.verifyLogin(propertyTable)
 		end)
