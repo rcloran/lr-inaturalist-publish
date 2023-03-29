@@ -24,12 +24,12 @@ return {
 
 	LrExportServiceProvider = {
 		title = "iNaturalist",
-		file = "INaturalistExportServiceProvider.lua",
+		file = "ExportServiceProvider.lua",
 	},
 
 	URLHandler = "URLHandler.lua",
 
-	LrMetadataProvider = "INaturalistMetadataDefinition.lua",
+	LrMetadataProvider = "MetadataDefinition.lua",
 
 	LrExportMenuItems = menuItems,
 	LrLibraryMenuItems = menuItems,
