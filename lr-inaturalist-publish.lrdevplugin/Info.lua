@@ -1,3 +1,16 @@
+local menuItems = {
+	{
+		title = "Group photos into observation",
+		file = "GroupObservation.lua",
+		enabledWhen = "photosSelected",
+	},
+	{
+		title = "Clear observation",
+		file = "ClearObservation.lua",
+		enabledWhen = "photosSelected",
+	},
+}
+
 return {
 	-- Have not tried to check what the right value is here. Guess.
 	LrSdkVersion = 6,
@@ -14,7 +27,10 @@ return {
 
 	URLHandler = "URLHandler.lua",
 
-	-- LrMetadataProvider = 'INaturalistMetadataDefinition.lua',
+	LrMetadataProvider = "INaturalistMetadataDefinition.lua",
+
+	LrExportMenuItems = menuItems,
+	LrLibraryMenuItems = menuItems,
 
 	VERSION = { major = 0, minor = 1, revision = 0 },
 }

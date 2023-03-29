@@ -8,6 +8,7 @@ local LrView = import("LrView")
 
 local bind = LrView.bind
 
+require("INaturalistMetadata")
 require("INaturalistUser")
 
 local exportServiceProvider = {
@@ -73,6 +74,73 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 	}
 end
 
+local function makeObservationObj(photo)
+	local observation = {}
+
+	local dateTimeISO8601 = photo:getRawMetadata("dateTimeISO8601")
+	if dateTimeISO8601 and #dateTimeISO8601 > 0 then
+		observation.observed_on_string = dateTimeISO8601
+	end
+
+	local description = photo:getFormattedMetadata("caption")
+	if description and #description > 0 then
+		observation.description = description
+	end
+
+	local gps = photo:getRawMetadata("gps")
+	if gps then
+		observation.latitude = gps.latitude
+		observation.longitude = gps.longitude
+	end
+
+	local keywords = photo:getRawMetadata("keywords")
+	if keywords and #keywords > 0 then
+		observation.tag_list = {}
+		for i = 1, #keywords do
+			table.insert(tag_list, keywords[i]:getName())
+		end
+	end
+
+	local observationUUID = photo:getPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID)
+	if observationUUID then
+		observation.uuid = observationUUID
+	end
+
+	return observation
+end
+
+local function uploadPhoto(api, observations, rendition, path)
+	local localObservationUUID = rendition.photo:getPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID)
+
+	if localObservationUUID and observations[localObservationUUID] then
+		-- In this case there's already an observation this session
+		local observation_photo = api:createObservationPhoto(path, observations[localObservationUUID])
+		LrFileUtils.delete(path)
+		local observation_stub = {
+			id = observations[localObservationUUID],
+			uuid = localObservationUUID,
+		}
+		return observation_photo.photo, observation_stub
+	end
+
+	-- In this case we might have linked a new photo to an existing
+	-- observation, or it might be a new observation. In the former case,
+	-- POST to /observations will update the old observation, so we can
+	-- just do that. Any updated fields will change to the new value, but
+	-- if they're blank we omit them in the POST so they should stay.
+	local observation = makeObservationObj(rendition.photo)
+	observation = api:createObservation(observation)
+
+	-- Record the observation for this session
+	observations[observation.uuid] = observation.id
+
+	-- Upload the photo
+	local observation_photo = api:createObservationPhoto(path, observation.id)
+	LrFileUtils.delete(path)
+
+	return observation_photo.photo, observation
+end
+
 function exportServiceProvider.processRenderedPhotos(functionContext, exportContext)
 	-- The crux of it all.
 	local exportSession = exportContext.exportSession
@@ -81,37 +149,25 @@ function exportServiceProvider.processRenderedPhotos(functionContext, exportCont
 	local progressScope =
 		exportContext:configureProgress({ title = string.format("Publishing %i photos to iNaturalist", nPhotos) })
 
+	local observations = {}
 	local api = INaturalistAPI:new(exportSettings.accessToken)
 	for i, rendition in exportContext:renditions({ stopIfCanceled = true }) do
 		progressScope:setPortionComplete((i - 1) / nPhotos)
 		if not rendition.wasSkipped then
 			local success, pathOrMessage = rendition:waitForRender()
-			progressScope:setPortionComplete((i - 0.75) / nPhotos)
+			progressScope:setPortionComplete((i - 0.5) / nPhotos)
 			if success then
-				-- We may not need this metadata -- the iNat API
-				-- will extract everything from the photo and
-				-- provide it back to us in the upload response.
-				-- A possible use case might be ensuring GPS
-				-- info is published even if it's disabled in
-				-- the export prefs -- but that seems like a
-				-- dark pattern?
-				-- local photo = rendition.photo
-				-- local gps = photo:getRawMetadata("gps")
-				-- local captureTime = photo:getRawMetadata("dateTimeISO8601")
-				-- local caption = photo:getFormattedMetadata("caption")
-				local photo = api:createPhoto(pathOrMessage)
-				LrFileUtils.delete(pathOrMessage)
-				progressScope:setPortionComplete((i - 0.25) / nPhotos)
-
-				-- Weirdly the "to_observation" included in the
-				-- photo response doesn't include the photo ID
-				local observation = photo.to_observation
-				observation.local_photos = {}
-				observation.local_photos["0"] = { photo.id }
-				observation = api:createObservation(observation)
+				local photo, observation = uploadPhoto(api, observations, rendition, pathOrMessage)
 
 				rendition:recordPublishedPhotoId(photo.uuid)
 				rendition:recordPublishedPhotoUrl("https://www.inaturalist.org/photos/" .. photo.id)
+
+				local lrPhoto = rendition.photo
+				lrPhoto.catalog:withPrivateWriteAccessDo(function()
+					lrPhoto:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID, observation.uuid)
+					local observation_url = "https://www.inaturalist.org/observations/" .. observation.id
+					lrPhoto:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationURL, observation_url)
+				end)
 			end
 		end
 	end

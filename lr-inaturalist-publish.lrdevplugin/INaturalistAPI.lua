@@ -49,8 +49,7 @@ function INaturalistAPI:apiGet(path)
 	local data, headers = LrHttp.get(url, headers)
 
 	maybeError(headers)
-	data = JSON:decode(data)
-	return data
+	return JSON:decode(data)
 end
 
 function INaturalistAPI:apiPost(path, content, method)
@@ -62,8 +61,18 @@ function INaturalistAPI:apiPost(path, content, method)
 	local data, headers = LrHttp.post(url, content, headers, method)
 
 	maybeError(headers)
-	data = JSON:decode(data)
-	return data
+	return JSON:decode(data)
+end
+
+function INaturalistAPI:apiPostMultipart(path, content)
+	logger:trace("apiPostMultipart()", path)
+	local url = INaturalistAPI.apiBase .. path
+	local headers = self:headers()
+
+	local data, headers = LrHttp.postMultipart(url, content, headers)
+
+	maybeError(headers)
+	return JSON:decode(data)
 end
 
 function INaturalistAPI:apiDelete(path)
@@ -156,12 +165,29 @@ end
 -- deleteObservationFieldValue -- DELETE /observation_field_values/{id}
 -- updateObservationFieldValues -- PUT /observation_field_values/{id}
 --
--- createObservationPhoto -- POST /observation_photos
+-- POST /observation_photos
+function INaturalistAPI:createObservationPhoto(filePath, observation_id)
+	logger:trace("createObservationPhoto()")
+	local content = {
+		{
+			name = "observation_photo[observation_id]",
+			value = observation_id,
+		},
+		{
+			name = "file",
+			filePath = filePath,
+			fileName = LrPathUtils.leafName(filePath),
+			contentType = "application/octet-stream",
+		},
+	}
+
+	return self:apiPostMultipart("observation_photos", content)
+end
 -- deleteObservationPhoto -- DELETE /observation_photos/{id}
 -- updateObservationPhoto -- PUT /observation_photos/{id}
 --
 -- listObservations -- GET /observations -- Observation Search
--- createObservation -- POST /observations -- Observation Create
+-- POST /observations -- Observation Create
 function INaturalistAPI:createObservation(observation)
 	logger:trace("createObservation()", observation)
 	return self:apiPost("observations", observation)
@@ -222,8 +248,8 @@ end
 -- getTaxon -- GET /taxa/{id}
 --
 --
--- getUser -- GET /users/{id} -- User Details
--- -- GET /users/me -- Users Me
+-- GET /users/{id} -- User Details
+-- GET /users/me -- Users Me
 -- Get user details by ID. Gets the currently logged in user if id is nil.
 function INaturalistAPI:getUser(id)
 	logger:trace("getUser()")
@@ -257,8 +283,6 @@ end
 -- createPhoto -- POST /photos
 function INaturalistAPI:createPhoto(filePath)
 	logger:trace("createPhoto()")
-	local url = INaturalistAPI.apiBase .. "photos"
-	local headers = self:headers()
 	local content = {
 		{
 			name = "file",
@@ -268,9 +292,5 @@ function INaturalistAPI:createPhoto(filePath)
 		},
 	}
 
-	local data, headers = LrHttp.postMultipart(url, content, headers)
-
-	maybeError(headers)
-	data = JSON:decode(data)
-	return data
+	return self:apiPostMultipart("photos", content)
 end

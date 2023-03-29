@@ -38,3 +38,18 @@ Once set up, add photos to the "Observations" collection like you would any
 other collection in Lightroom. When you're ready to upload your images,
 navigate to the collection and click the "Publish" button at the top. Your
 images will be uploaded to iNaturalist, and observations will be created.
+
+If you have multiple photos that belong to one observation, you can group them
+before publishing, so that only one observation will be created. Select the
+photos that should be grouped together, and use the `File` -> `Plug-in Extras`
+-> `Group photos into observation` command to group them. You can assign a
+keyboard shortcut to this menu item (I use cmd-O on my Mac) to make this
+faster[^1].
+
+You can also add photos to existing observations in the same way -- just group
+the new photos with the observation and publish.
+
+[^1]: On macOS you can create your own keyboard shortcut in your System Settings,
+under Keyboard -> Keyboard Shortcuts -> App Shortcuts. Note that because
+Lightroom places three spaces before the menu item, you need to put these into
+the shortcut too.

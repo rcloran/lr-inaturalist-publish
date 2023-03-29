@@ -42,7 +42,7 @@ local function generateSecret()
 	-- This is not great :(
 	local s = ""
 	for i = 1, 32 do
-		s = s .. string.char(math.random(256) - 1)
+		s = s .. string.char(math.random(0, 255))
 	end
 	return base64urlencode(s)
 end
