@@ -16,6 +16,7 @@ local exportServiceProvider = {
 	exportPresetFields = {
 		{ key = "accessToken", default = "" },
 		{ key = "login", default = "" },
+		{ key = "uploadKeywords", default = false },
 	},
 	hideSections = {
 		"exportLocation",
@@ -51,30 +52,41 @@ function exportServiceProvider.startDialog(propertyTable)
 end
 
 function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
-	return {
-		{
-			title = "iNaturalist Account",
-			synopsis = "Account status",
-			f:row({
-				spacing = f:control_spacing(),
-				f:static_text({
-					title = bind("accountStatus"),
-					alignment = "right",
-					fill_horizontal = 1,
-				}),
-				f:push_button({
-					title = bind("loginButtonTitle"),
-					enabled = bind("loginButtonEnabled"),
-					action = function()
-						INaturalistUser.login(propertyTable)
-					end,
-				}),
+	local account = {
+		title = "iNaturalist Account",
+		synopsis = "Account status",
+		f:row({
+			spacing = f:control_spacing(),
+			f:static_text({
+				title = bind("accountStatus"),
+				alignment = "right",
+				fill_horizontal = 1,
 			}),
-		},
+			f:push_button({
+				title = bind("loginButtonTitle"),
+				enabled = bind("loginButtonEnabled"),
+				action = function()
+					INaturalistUser.login(propertyTable)
+				end,
+			}),
+		}),
 	}
+	local options = {
+		title = "Export options",
+		f:row({
+			spacing = f:control_spacing(),
+			f:checkbox({
+				title = "Export LR keywords as iNaturalist tags",
+				alignment = "left",
+				value = bind("uploadKeywords"),
+			}),
+		}),
+	}
+
+	return { account, options }
 end
 
-local function makeObservationObj(photo)
+local function makeObservationObj(photo, exportSettings)
 	local observation = {}
 
 	local dateTimeISO8601 = photo:getRawMetadata("dateTimeISO8601")
@@ -93,11 +105,13 @@ local function makeObservationObj(photo)
 		observation.longitude = gps.longitude
 	end
 
-	local keywords = photo:getRawMetadata("keywords")
-	if keywords and #keywords > 0 then
-		observation.tag_list = {}
-		for i = 1, #keywords do
-			table.insert(tag_list, keywords[i]:getName())
+	if exportSettings.uploadKeywords then
+		local keywords = photo:getRawMetadata("keywords")
+		if keywords and #keywords > 0 then
+			observation.tag_list = {}
+			for i = 1, #keywords do
+				table.insert(observation.tag_list, keywords[i]:getName())
+			end
 		end
 	end
 
@@ -109,7 +123,7 @@ local function makeObservationObj(photo)
 	return observation
 end
 
-local function uploadPhoto(api, observations, rendition, path)
+local function uploadPhoto(api, observations, rendition, path, exportSettings)
 	local localObservationUUID = rendition.photo:getPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID)
 
 	if localObservationUUID and observations[localObservationUUID] then
@@ -128,7 +142,7 @@ local function uploadPhoto(api, observations, rendition, path)
 	-- POST to /observations will update the old observation, so we can
 	-- just do that. Any updated fields will change to the new value, but
 	-- if they're blank we omit them in the POST so they should stay.
-	local observation = makeObservationObj(rendition.photo)
+	local observation = makeObservationObj(rendition.photo, exportSettings)
 	observation = api:createObservation(observation)
 
 	-- Record the observation for this session
@@ -157,7 +171,7 @@ function exportServiceProvider.processRenderedPhotos(functionContext, exportCont
 			local success, pathOrMessage = rendition:waitForRender()
 			progressScope:setPortionComplete((i - 0.5) / nPhotos)
 			if success then
-				local photo, observation = uploadPhoto(api, observations, rendition, pathOrMessage)
+				local photo, observation = uploadPhoto(api, observations, rendition, pathOrMessage, exportSettings)
 
 				rendition:recordPublishedPhotoId(photo.uuid)
 				rendition:recordPublishedPhotoUrl("https://www.inaturalist.org/photos/" .. photo.id)
@@ -177,12 +191,15 @@ end
 
 -- Publish provider functions
 function exportServiceProvider.metadataThatTriggersRepublish(publishSettings)
-	return {
+	local r = {
 		default = false,
 		caption = true,
-		dateCreated = true, -- !?
-		gps = true, -- !?
+		dateCreated = true,
+		gps = true,
+		keywords = publishSettings.uploadKeywords,
 	}
+
+	return r
 end
 
 function exportServiceProvider.getCollectionBehaviorInfo(publishSettings)
