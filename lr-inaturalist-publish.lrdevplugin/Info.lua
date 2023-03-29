@@ -20,6 +20,8 @@ return {
 
 	LrInitPlugin = "InitPlugin.lua",
 
+	LrPluginInfoProvider = "PluginInfoProvider.lua",
+
 	LrExportServiceProvider = {
 		title = "iNaturalist",
 		file = "INaturalistExportServiceProvider.lua",
