@@ -32,6 +32,15 @@ function INaturalistAPI.urlencode(s)
 	return s
 end
 
+function INaturalistAPI.formEncode(t)
+	local fields = {}
+	for k, v in pairs(t) do
+		local field = string.format("%s=%s", INaturalistAPI.urlencode(k), INaturalistAPI.urlencode(v))
+		table.insert(fields, field)
+	end
+	return table.concat(fields, "&")
+end
+
 local function maybeError(headers)
 	if headers.error then
 		error(headers.error.name)
@@ -42,7 +51,7 @@ local function maybeError(headers)
 end
 
 function INaturalistAPI:apiGet(path)
-	logger:trace("apiGet()", path)
+	logger:tracef("apiGet(%s)", path)
 	local url = INaturalistAPI.apiBase .. path
 	local headers = self:headers()
 
@@ -52,11 +61,24 @@ function INaturalistAPI:apiGet(path)
 	return JSON:decode(data)
 end
 
-function INaturalistAPI:apiPost(path, content, method)
-	logger:trace("apiPost()", path, method)
+function INaturalistAPI:apiPost(path, content, method, content_type)
+	logger:tracef("apiPost(%s, ..., %s)", path, method)
 	local url = INaturalistAPI.apiBase .. path
 	local headers = self:headers()
-	content = JSON:encode(content)
+	if not content_type then
+		if content then
+			content_type = "application/json"
+		else
+			content_type = "skip"
+		end
+	end
+	table.insert(headers, { field = "Content-Type", value = content_type })
+
+	if content then
+		content = JSON:encode(content)
+	else
+		content = ""
+	end
 
 	local data, headers = LrHttp.post(url, content, headers, method)
 
@@ -65,7 +87,7 @@ function INaturalistAPI:apiPost(path, content, method)
 end
 
 function INaturalistAPI:apiPostMultipart(path, content)
-	logger:trace("apiPostMultipart()", path)
+	logger:tracef("apiPostMultipart(%s)", path)
 	local url = INaturalistAPI.apiBase .. path
 	local headers = self:headers()
 
@@ -76,12 +98,12 @@ function INaturalistAPI:apiPostMultipart(path, content)
 end
 
 function INaturalistAPI:apiDelete(path)
-	logger:trace("apiDelete()", path)
-	return self:apiPost(path, "", "DELETE")
+	logger:tracef("apiDelete(%s)", path)
+	return self:apiPost(path, nil, "DELETE")
 end
 
 function INaturalistAPI:apiPut(path, content)
-	logger:trace("apiPut()", path)
+	logger:tracef("apiPut(%s)", path)
 	return self:apiPost(path, content, "PUT")
 end
 
@@ -95,12 +117,9 @@ function INaturalistAPI:getAPIToken()
 		{ field = "Authorization", value = "Bearer " .. self.accessToken },
 	}
 	local data, headers = LrHttp.get(url, headers)
-	if headers.error then
-		error(headers.error.name)
-	elseif headers.status ~= 200 then
-		msg = string.format("API error: %s", headers.status)
-		error(msg)
-	end
+
+	maybeError(headers)
+
 	data = JSON:decode(data)
 	self.api_token = data.api_token
 	return data.api_token
@@ -109,12 +128,11 @@ end
 -- The convenient way of handling the JWT; a thin caching layer over
 -- getAPIToken.
 function INaturalistAPI:jwt()
-	logger:trace("jwt()")
 	if self.api_token then
 		-- TODO: Handle expired tokens
 		return self.api_token
 	end
-	logger:trace("  getting a new token")
+	logger:debug("Getting a new token")
 	return self:getAPIToken()
 end
 
@@ -167,7 +185,6 @@ end
 --
 -- POST /observation_photos
 function INaturalistAPI:createObservationPhoto(filePath, observation_id)
-	logger:trace("createObservationPhoto()")
 	local content = {
 		{
 			name = "observation_photo[observation_id]",
@@ -187,12 +204,22 @@ end
 -- updateObservationPhoto -- PUT /observation_photos/{id}
 --
 -- listObservations -- GET /observations -- Observation Search
+function INaturalistAPI:listObservations(search)
+	local qs = INaturalistAPI.formEncode(search)
+
+	local observation = self:apiGet("observations?" .. qs)
+	return observation.results
+end
 -- POST /observations -- Observation Create
 function INaturalistAPI:createObservation(observation)
-	logger:trace("createObservation()", observation)
 	return self:apiPost("observations", observation)
 end
--- deleteObservation -- DELETE /observations/{id} -- Observation Delete
+-- DELETE /observations/{id} -- Observation Delete
+function INaturalistAPI:deleteObservation(id)
+	assert(string.len(id) > 0)
+
+	return self:apiDelete("observations/" .. id)
+end
 -- getObservation -- GET /observations/{id} -- Observation Details
 -- updateObservation -- PUT /observations/{id} -- Observation Update
 -- createObservationFave -- POST /observations/{id}/fave -- Observations Fave
@@ -252,7 +279,6 @@ end
 -- GET /users/me -- Users Me
 -- Get user details by ID. Gets the currently logged in user if id is nil.
 function INaturalistAPI:getUser(id)
-	logger:trace("getUser()")
 	if id == nil then
 		id = "me"
 	elseif type(id) == "number" then
@@ -282,7 +308,6 @@ end
 --
 -- createPhoto -- POST /photos
 function INaturalistAPI:createPhoto(filePath)
-	logger:trace("createPhoto()")
 	local content = {
 		{
 			name = "file",
@@ -293,4 +318,22 @@ function INaturalistAPI:createPhoto(filePath)
 	}
 
 	return self:apiPostMultipart("photos", content)
+end
+
+-- Old (Rails-based) API!
+function INaturalistAPI:deletePhoto(id)
+	logger:tracef("deletePhoto(%s)", id)
+	assert(string.len(id) > 0)
+	local url = "https://www.inaturalist.org/photos/" .. id
+	local headers = {
+		{ field = "Accept", value = "application/json" },
+		{ field = "Authorization", value = self:jwt() },
+	}
+	local data, headers = LrHttp.post(url, "", headers, "DELETE")
+
+	maybeError(headers)
+
+	data = JSON:decode(data)
+	self.api_token = data.api_token
+	return data.api_token
 end

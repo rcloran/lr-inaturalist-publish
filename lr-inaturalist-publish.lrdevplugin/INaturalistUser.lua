@@ -92,15 +92,6 @@ function INaturalistUser.handleAuthRedirect(url)
 	end
 end
 
-local function formEncode(t)
-	local fields = {}
-	for k, v in pairs(t) do
-		local field = string.format("%s=%s", INaturalistAPI.urlencode(k), INaturalistAPI.urlencode(v))
-		table.insert(fields, field)
-	end
-	return table.concat(fields, "&")
-end
-
 -- Obtain an OAuth access token (second stage of OAuth)
 function INaturalistUser.getToken(code, challenge)
 	logger:trace("getToken()")
@@ -115,7 +106,7 @@ function INaturalistUser.getToken(code, challenge)
 		code_verifier = challenge,
 		redirect_uri = INaturalistAPI.oauthRedirect,
 	}
-	body = formEncode(body)
+	body = INaturalistAPI.formEncode(body)
 	local data, headers = LrHttp.post(url, body, headers)
 	if headers.error then
 		msg = string.format("Error logging in: %s", headers.error.name)

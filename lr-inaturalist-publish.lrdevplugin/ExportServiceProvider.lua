@@ -1,6 +1,7 @@
 require("strict")
 
 local logger = import("LrLogger")("lr-inaturalist-publish")
+local LrApplication = import("LrApplication")
 local LrFileUtils = import("LrFileUtils")
 local LrHttp = import("LrHttp")
 local LrTasks = import("LrTasks")
@@ -173,7 +174,7 @@ function exportServiceProvider.processRenderedPhotos(functionContext, exportCont
 			if success then
 				local photo, observation = uploadPhoto(api, observations, rendition, pathOrMessage, exportSettings)
 
-				rendition:recordPublishedPhotoId(photo.uuid)
+				rendition:recordPublishedPhotoId(photo.id)
 				rendition:recordPublishedPhotoUrl("https://www.inaturalist.org/photos/" .. photo.id)
 
 				local lrPhoto = rendition.photo
@@ -200,6 +201,80 @@ function exportServiceProvider.metadataThatTriggersRepublish(publishSettings)
 	}
 
 	return r
+end
+
+local function getObservationsForPhotos(api, collection, photos)
+	-- Urgh. No way to search by remoteId, and we need the observation
+	for _, photo in pairs(collection:getPublishedPhotos()) do
+		if photos[photo:getRemoteId()] then
+			photos[photo:getRemoteId()] = photo:getPhoto()
+		end
+	end
+
+	-- Retrieve all the observations (1 by 1!? TODO: Batch.)
+	local observations = {}
+	for _, photo in pairs(photos) do
+		local uuid = photo:getPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID)
+		if not observations[uuid] then
+			local listedObservations = api:listObservations({ uuid = uuid })
+			if #listedObservations == 1 then
+				observations[uuid] = listedObservations[1]
+			else
+				-- The only possibility here /should/ be 0,
+				-- in which case there's nothing to delete
+				-- anyways.
+				logger:info("Found %s observations when searching for %s (expected 1)", #listedObservations, uuid)
+			end
+		end
+	end
+
+	return observations
+end
+
+function exportServiceProvider.deletePhotosFromPublishedCollection(
+	publishSettings,
+	photoIds,
+	deletedCallback,
+	localCollectionId
+)
+	logger:trace("deletePhotosFromPublishedCollection(...)")
+	local catalog = LrApplication.activeCatalog()
+	local collection = catalog:getPublishedCollectionByLocalIdentifier(localCollectionId)
+
+	local api = INaturalistAPI:new(publishSettings.accessToken)
+
+	-- Turn photoIds into a set
+	local photos = {}
+	for i = 1, #photoIds do
+		photos[photoIds[i]] = true
+	end
+
+	local observations = getObservationsForPhotos(api, collection, photos)
+
+	-- Delete the observations where we're deleting all the photos attached
+	-- to that observation.
+	for _, observation in pairs(observations) do
+		local deletingAllPhotos = true
+		for _, photo in pairs(observation.photos) do
+			deletingAllPhotos = deletingAllPhotos and photos[photo.id]
+		end
+
+		if deletingAllPhotos then
+			logger:infof("Deleting observation %s %s", observation.id, observation.uuid)
+			api:deleteObservation(observation.id)
+			-- Deleting the observation automagically deletes
+			-- associated photos
+			for _, photo in pairs(observation.photos) do
+				deletedCallback(photo.id)
+				photos[photo.id] = nil
+			end
+		end
+	end
+	for photoId, _ in pairs(photos) do
+		logger:infof("Deleting photo %s", photoId)
+		api:deletePhoto(photoId)
+		deletedCallback(photoId)
+	end
 end
 
 function exportServiceProvider.getCollectionBehaviorInfo(publishSettings)
