@@ -55,6 +55,11 @@ You can delete photos from iNaturalist by removing them from the "Observations"
 collection and publishing it again. If you remove all of the photos that belong
 to an observation that observation will be deleted.
 
+If you change a photo (for example change the develop settings) it will be
+marked to be republished. When you publish, the photo will be uploaded again
+(attaching it to the original observation), and the old version of the photo
+will be deleted.
+
 [^1]: On macOS you can create your own keyboard shortcut in your System Settings,
 under Keyboard -> Keyboard Shortcuts -> App Shortcuts. Note that because
 Lightroom places three spaces before the menu item, you need to put these into

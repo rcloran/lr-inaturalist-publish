@@ -2,6 +2,7 @@ require("strict")
 
 local logger = import("LrLogger")("lr-inaturalist-publish")
 local LrApplication = import("LrApplication")
+local LrDialogs = import("LrDialogs")
 local LrFileUtils = import("LrFileUtils")
 local LrHttp = import("LrHttp")
 local LrTasks = import("LrTasks")
@@ -156,6 +157,36 @@ local function uploadPhoto(api, observations, rendition, path, exportSettings)
 	return observation_photo.photo, observation
 end
 
+local function maybeDeleteOld(api, photoId)
+	if not photoId then
+		return
+	end
+
+	logger:infof("Deleting photo %s (updated)", photoId)
+	local success, result = LrTasks.pcall(function()
+		api:deletePhoto(photoId)
+	end)
+
+	-- If we get a 404 on delete, that's the state we wanted anyways, so
+	-- treat it as success.
+	if success or result.code == 404 then
+		return
+	end
+
+	-- If we get an error here I think it's better to continue
+	-- updates/publishes instead of letting the error bubble up? Just tell
+	-- the user.
+	local msg = string.format(
+		"There was a problem deleting the old version of photo %s. "
+			.. "There may now be duplicate versions on iNaturalist. "
+			.. "Error was: %s",
+		photoId,
+		result
+	)
+
+	LrDialogs.message("Error while updating photo", msg)
+end
+
 function exportServiceProvider.processRenderedPhotos(functionContext, exportContext)
 	-- The crux of it all.
 	local exportSession = exportContext.exportSession
@@ -172,7 +203,10 @@ function exportServiceProvider.processRenderedPhotos(functionContext, exportCont
 			local success, pathOrMessage = rendition:waitForRender()
 			progressScope:setPortionComplete((i - 0.5) / nPhotos)
 			if success then
+				local previousPhotoId = rendition.publishedPhotoId
 				local photo, observation = uploadPhoto(api, observations, rendition, pathOrMessage, exportSettings)
+
+				maybeDeleteOld(api, previousPhotoId)
 
 				rendition:recordPublishedPhotoId(photo.id)
 				rendition:recordPublishedPhotoUrl("https://www.inaturalist.org/photos/" .. photo.id)

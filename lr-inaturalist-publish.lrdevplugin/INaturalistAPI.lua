@@ -43,10 +43,10 @@ end
 
 local function maybeError(headers)
 	if headers.error then
-		error(headers.error.name)
+		error({code=headers.error.errorCode, message=headers.error.name})
 	elseif headers.status ~= 200 then
 		local msg = string.format("API error: %s", headers.status)
-		error(msg)
+		error({code=headers.status, message=headers.statusDes})
 	end
 end
 
