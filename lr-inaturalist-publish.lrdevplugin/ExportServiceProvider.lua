@@ -110,10 +110,11 @@ local function makeObservationObj(photo, exportSettings)
 	if exportSettings.uploadKeywords then
 		local keywords = photo:getRawMetadata("keywords")
 		if keywords and #keywords > 0 then
-			observation.tag_list = {}
-			for i = 1, #keywords do
-				table.insert(observation.tag_list, keywords[i]:getName())
+			local tagList = keywords[1]:getName()
+			for i = 2, #keywords do
+				tagList = tagList .. "," .. keywords[i]:getName()
 			end
+			observation.tag_list = tagList
 		end
 	end
 
