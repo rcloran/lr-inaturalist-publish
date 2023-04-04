@@ -158,12 +158,7 @@ local function uploadPhoto(api, observations, rendition, path, exportSettings)
 	return observation_photo.photo, observation
 end
 
-local function maybeDeleteOld(api, photoId)
-	if not photoId then
-		return
-	end
-
-	logger:infof("Deleting photo %s (updated)", photoId)
+local function saferDelete(api, photoId)
 	local success, result = LrTasks.pcall(function()
 		api:deletePhoto(photoId)
 	end)
@@ -171,6 +166,22 @@ local function maybeDeleteOld(api, photoId)
 	-- If we get a 404 on delete, that's the state we wanted anyways, so
 	-- treat it as success.
 	if success or result.code == 404 then
+		return
+	end
+	error(result)
+end
+
+local function maybeDeleteOld(api, photoId)
+	if not photoId then
+		return
+	end
+
+	logger:infof("Deleting photo %s (updated)", photoId)
+	local success, result = LrTasks.pcall(function()
+		saferDelete(api, photoId)
+	end)
+
+	if success then
 		return
 	end
 
@@ -250,7 +261,7 @@ local function getObservationsForPhotos(api, collection, photos)
 	local observations = {}
 	for _, photo in pairs(photos) do
 		local uuid = photo:getPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID)
-		if not observations[uuid] then
+		if uuid and not observations[uuid] then
 			local listedObservations = api:listObservations({ uuid = uuid })
 			if #listedObservations == 1 then
 				observations[uuid] = listedObservations[1]
@@ -258,7 +269,7 @@ local function getObservationsForPhotos(api, collection, photos)
 				-- The only possibility here /should/ be 0,
 				-- in which case there's nothing to delete
 				-- anyways.
-				logger:info("Found %s observations when searching for %s (expected 1)", #listedObservations, uuid)
+				logger:infof("Found %s observations when searching for %s (expected 1)", #listedObservations, uuid)
 			end
 		end
 	end
@@ -307,7 +318,7 @@ function exportServiceProvider.deletePhotosFromPublishedCollection(
 	end
 	for photoId, _ in pairs(photos) do
 		logger:infof("Deleting photo %s", photoId)
-		api:deletePhoto(photoId)
+		saferDelete(api, photoId) -- Let errors bubble up
 		deletedCallback(photoId)
 	end
 end
