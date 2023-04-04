@@ -36,7 +36,7 @@ local exportServiceProvider = {
 }
 
 local function updateCantExportBecause(propertyTable)
-	if not propertyTable.accessToken then
+	if propertyTable.accessToken == "" then
 		propertyTable.LR_cantExportBecause = "Not logged in to iNaturalist"
 		return
 	end
@@ -49,6 +49,7 @@ function exportServiceProvider.startDialog(propertyTable)
 	propertyTable:addObserver("accessToken", function()
 		updateCantExportBecause(propertyTable)
 	end)
+	updateCantExportBecause(propertyTable)
 
 	INaturalistUser.verifyLogin(propertyTable)
 end
