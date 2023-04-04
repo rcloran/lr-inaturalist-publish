@@ -13,7 +13,7 @@ INaturalistAPI = {
 	apiBase = "https://api.inaturalist.org/v1/",
 }
 
--- Constructor -- an instnance of the API stores the access token locally, and
+-- Constructor -- an instance of the API stores the access token locally, and
 -- handles obtaining JWT (tokens for the new API), which are short-lived, as
 -- needed.
 function INaturalistAPI:new(accessToken)
@@ -43,11 +43,19 @@ end
 
 local function maybeError(headers)
 	if headers.error then
-		error({code=headers.error.errorCode, message=headers.error.name})
+		error({ code = headers.error.errorCode, message = headers.error.name })
 	elseif headers.status ~= 200 then
 		local msg = string.format("API error: %s", headers.status)
-		error({code=headers.status, message=headers.statusDes})
+		error({ code = headers.status, message = headers.statusDes })
 	end
+end
+
+local function shallowCopy(table)
+	local r = {}
+	for k, v in pairs(table) do
+		r[k] = v
+	end
+	return r
 end
 
 function INaturalistAPI:apiGet(path)
@@ -209,6 +217,53 @@ function INaturalistAPI:listObservations(search)
 
 	local observation = self:apiGet("observations?" .. qs)
 	return observation.results
+end
+-- Like listObservations, but deals with pagination and compiles all results
+-- into one table.
+-- Overrides per_page, order_by, order, id_above, id_below in the search;
+-- results are always ordered descending by id.
+function INaturalistAPI:listObservationsWithPagination(search, progress)
+	local results, resultsRemain, totalResults = {}, true, nil
+
+	search = shallowCopy(search)
+	search.per_page = 100
+	search.order_by = "id"
+	search.order = "desc"
+	search.id_above = nil
+	search.id_below = nil
+
+	while resultsRemain do
+		if progress:isCanceled() then
+			error({ code = "canceled", message = "Canceled by user" })
+		end
+
+		local qs = INaturalistAPI.formEncode(search)
+		local newResults = self:apiGet("observations?" .. qs)
+		if not totalResults then
+			-- total_results keeps changing on us because id_below.
+			-- Save value from first query.
+			totalResults = newResults.total_results
+		end
+		local totalResults = newResults.total_results + #results
+		for i = 1, #newResults.results do
+			results[#results + 1] = newResults.results[i]
+		end
+		resultsRemain = #newResults.results >= newResults.per_page
+
+		if progress then
+			progress:setPortionComplete(#results / totalResults)
+			progress:setCaption("Downloading observations (" .. #results .. "/" .. totalResults .. ")")
+		end
+
+		if #newResults.results > 0 then
+			search.id_below = newResults.results[#newResults.results].id
+		end
+	end
+
+	if progress then
+		progress:done()
+	end
+	return results
 end
 -- POST /observations -- Observation Create
 function INaturalistAPI:createObservation(observation)
