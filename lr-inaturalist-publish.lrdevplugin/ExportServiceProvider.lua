@@ -21,6 +21,10 @@ local exportServiceProvider = {
 		{ key = "accessToken", default = "" },
 		{ key = "login", default = "" },
 		{ key = "uploadKeywords", default = false },
+		{ key = "syncKeywords", default = true },
+		{ key = "syncKeywordsCommon", default = true },
+		{ key = "syncKeywordsIncludeOnExport", default = true },
+		{ key = "syncKeywordsRoot", default = -1 },
 		{ key = "syncOnPublish", default = true },
 		{ key = "syncSearchIn", default = -1 },
 	},
@@ -101,6 +105,19 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		propertyTable.syncSearchInItems = r
 	end)
 
+	LrTasks.startAsyncTask(function()
+		local cat = LrApplication.activeCatalog()
+		local r = {{title="--",value=-1}}
+		local kw = cat:getKeywords()
+		for i = 1, #kw do
+			r[#r + 1] = {
+				title = kw[i]:getName(),
+				value = kw[i].localIdentifier,
+			}
+		end
+		propertyTable.syncKeywordsRootItems = r
+	end)
+
 	local account = {
 		title = "iNaturalist Account",
 		synopsis = "Account status",
@@ -177,6 +194,58 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 			}),
 			f:checkbox({
 				value = bind("syncOnPublish"),
+			}),
+		}),
+		f:row({
+			spacing = f:control_spacing(),
+			f:static_text({
+				title = "Update keywords from iNaturalist data",
+				alignment = "right",
+				width = LrView.share("inaturalistSyncLabel"),
+			}),
+			f:checkbox({
+				value = bind("syncKeywords"),
+			}),
+		}),
+		f:row({
+			spacing = f:control_spacing(),
+			f:static_text({
+				title = "Use common names for keywords",
+				alignment = "right",
+				width = LrView.share("inaturalistSyncLabel"),
+				enabled = bind("syncKeywords"),
+			}),
+			f:checkbox({
+				value = bind("syncKeywordsCommon"),
+				enabled = bind("syncKeywords"),
+			}),
+		}),
+		f:row({
+			spacing = f:control_spacing(),
+			f:static_text({
+				title = "Set \"Include on Export\" attribute on keywords",
+				alignment = "right",
+				width = LrView.share("inaturalistSyncLabel"),
+				enabled = bind("syncKeywords"),
+			}),
+			f:checkbox({
+				value = bind("syncKeywordsIncludeOnExport"),
+				enabled = bind("syncKeywords"),
+			}),
+		}),
+		f:row({
+			spacing = f:control_spacing(),
+			f:static_text({
+				title = "Put keywords within this keyword:\n" ..
+				  "Note: If this isn't set, keywords can't be properly changed (see \"Help...\")",
+				alignment = "right",
+				width = LrView.share("inaturalistSyncLabel"),
+				enabled = bind("syncKeywords"),
+			}),
+			f:popup_menu({
+				value = bind("syncKeywordsRoot"),
+				items = bind("syncKeywordsRootItems"),
+				enabled = bind("syncKeywords"),
 			}),
 		}),
 		f:separator({ fill_horizontal = 1 }),

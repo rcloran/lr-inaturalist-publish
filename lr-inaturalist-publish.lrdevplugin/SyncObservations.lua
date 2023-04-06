@@ -145,6 +145,117 @@ local function withPrivateWriteAccessDo(func, timeoutParams)
 	end
 end
 
+local function cachedKeyword(cache, key)
+	for _, k in pairs(key) do
+		if not cache[k[1]] then
+			return
+		end
+		cache = cache[k[1]]
+	end
+	return cache[1]
+end
+
+local function createKeyword(kw, cache, settings)
+	-- Thin wrapper around catalog:createKeyword, since its "returnExisting"
+	-- flag does not always work correctly. I think if parent was created
+	-- within the same write transaction? Deal with this by managing a cache.
+	local cached = cachedKeyword(cache, kw)
+	if cached then
+		return cached
+	end
+
+	local catalog = LrApplication.activeCatalog()
+	local parent = nil
+	if settings.syncKeywordsRoot and settings.syncKeywordsRoot ~= -1 then
+		parent = catalog:getKeywordsByLocalId({ settings.syncKeywordsRoot })[1]
+	end
+	withWriteAccessDo("Create keyword " .. kw[#kw][1], function()
+		for _, part in pairs(kw) do
+			if not cache[part[1]] then
+				local tmp = catalog:createKeyword(part[1], { part[2] }, settings.includeOnExport, parent, true)
+				cache[part[1]] = { tmp }
+			end
+			cache = cache[part[1]]
+			parent = cache[1]
+		end
+	end, { timeout = 10 })
+	return cache[1]
+end
+
+local function makeKeywordPath(obs, useCommonNames)
+	if not (obs.taxon and obs.identifications and #obs.identifications > 0) then
+		return
+	end
+	local r = {}
+	walkTaxonomy(obs, function(taxon)
+		local kw, syn = commonName(taxon), taxon.name
+		if useCommonNames == false then
+			kw, syn = syn, kw
+		end
+		r[#r + 1] = { kw, syn }
+	end)
+
+	return r
+end
+
+local function kwIsParentedBy(kw, rootId)
+	if rootId == -1 or rootId == nil then
+		return false
+	end
+	while kw do
+		kw = kw:getParent()
+		if kw == nil then
+			return false
+		end
+		if kw.localIdentifier == rootId then
+			return true
+		end
+	end
+	return false
+end
+
+local function kwIsEquivalent(kw, hierarchy, rootId)
+	local offset = 0
+	while kw and kw.localIdentifier ~= rootId do
+		-- Should check synonym here, too
+		if kw:getName() ~= hierarchy[#hierarchy - offset][1] then
+			return false
+		end
+		kw = kw:getParent()
+		offset = offset + 1
+	end
+	return true
+end
+
+local function syncKeywords(photo, kw, settings, keywordCache)
+	if not settings.syncKeywords then
+		return
+	end
+	local unwanted = {}
+	local needsAddition = true
+	for _, oldKw in pairs(photo:getRawMetadata("keywords")) do
+		if kwIsParentedBy(oldKw, settings.syncKeywordsRoot) then
+			if kwIsEquivalent(oldKw, kw, settings.syncKeywordsRoot) then
+				needsAddition = false
+			else
+				unwanted[#unwanted + 1] = oldKw
+			end
+		end
+	end
+
+	if #unwanted > 0 or needsAddition then
+		withWriteAccessDo("Apply keyword", function()
+			for _, oldKw in pairs(unwanted) do
+				photo:removeKeyword(oldKw)
+			end
+			if needsAddition then
+				kw = createKeyword(kw, keywordCache, settings)
+				photo:addKeyword(kw)
+			end
+		end, { timeout = 3 })
+	end
+end
+
 local function getCollection(publishSettings)
 	-- We can't save a value on settings outside of the publishing manager.
 	-- It's tempting to use the plugin prefs, but AFAICT those don't exist
@@ -376,6 +487,7 @@ local function sync(functionContext, settings, progress, api, lastSync)
 	for _, photo in pairs(collection:getPhotos()) do
 		collectionPhotos[photo.localIdentifier] = true
 	end
+	local keywordCache = {}
 	for i = 1, #observations do
 		if syncProgress:isCanceled() then
 			-- Lightroom seems to not present dialogs if you give a table as error,
@@ -395,6 +507,10 @@ local function sync(functionContext, settings, progress, api, lastSync)
 		photos, matchedByUUID = filterMatchedPhotos(observation, photos, settings.syncSearchIn)
 
 		if #photos == 1 or matchedByUUID then
+			local kw = nil
+			if settings.syncKeywords then
+				kw = makeKeywordPath(observation, settings.syncKeywordsCommon)
+			end
 			for _, photo in pairs(photos) do
 				withPrivateWriteAccessDo(function()
 					setObservationMetadata(observation, photo)
@@ -402,6 +518,7 @@ local function sync(functionContext, settings, progress, api, lastSync)
 					local observation_url = "https://www.inaturalist.org/observations/" .. observation.id
 					photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationURL, observation_url)
 				end)
+				syncKeywords(photo, kw, settings, keywordCache)
 			end
 			if #photos == 1 and #observation.photos == 1 and not collectionPhotos[photos[1].localIdentifier] then
 				local oP = observation.photos[1]

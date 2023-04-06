@@ -42,18 +42,28 @@ choosing `Edit Settings...`
 After initial setup you will be prompted to synchronize observations from
 iNaturalist to your catalog. This will download all observation information and
 try to find matching photos (based on criteria like time and location). Any
-matches found will have metadata, such as the taxonomy, added to the photo. If
-a photo can be uniquely associated to a photo within an observation, it will
-also add photos into the "Observations" collection within the iNaturalist
+matches found will have metadata, such as the taxonomy and a link to the
+observation, added to the photo.
+
+<img src="docs/keywords.jpg" align="right" width="204" />
+
+If you selected the option to update keywords from iNaturalist, keywords will
+be created in a taxonomical hierarchy, and applied to your photo. The default
+is to create keywords using the common name. If you unselect that option the
+scientific name will be used instead. In either case, the alternate will be
+used as a keyword synonym so that you can search by either.
+
+If a photo can be uniquely associated to one photo within an observation, it
+will also add photos into the "Observations" collection within the iNaturalist
 publish service.
 
 This initial download might take some time, but later synchronization
 operations only retrieve changes since the last sync and should be much faster.
 If you tend to take bursts of photos and keep the alternates in your catalog
 the matching might not be very good; you can improve the likelihood of finding
-matches (so that local metadata is set) by specifying a collection of photos
-in which to restrict the search for matches. See [the wiki][1] for a more
-detailed explanation.
+matches (so that local metadata is set) by specifying a collection of photos in
+which to restrict the search for matches. See [the wiki][1] for a more detailed
+explanation.
 
 The default configuration is to perform a new sync every time you publish.
 This will retrieve any new information from iNaturalist (for example, new
@@ -63,7 +73,7 @@ synchronization like the initial sync from the settings dialog.
 
 [1]: https://github.com/rcloran/lr-inaturalist-publish/wiki/Synchronization
 
-#### Adding to iNaturalist
+#### <div style="clear: both"></div>Adding to iNaturalist 
 
 Once set up, add photos to the "Observations" collection like you would any
 other collection in Lightroom. When you're ready to upload your images,
