@@ -16,6 +16,4 @@ logger:trace("------------------ Starting iNaturalist Publish Service Plugin")
 
 _VERSION = "Lua 5.1" -- sha2 needs _VERSION
 
-local UUID = require("UUID")
--- Seed math.randomseed() with something good^Wpassable^Wbetter than just os.time()
-UUID.seed()
+local UUID = require("UUID") -- Set up UUID/randomness
