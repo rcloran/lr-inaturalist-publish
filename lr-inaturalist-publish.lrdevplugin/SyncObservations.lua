@@ -198,7 +198,7 @@ local function makeKeywordPath(obs, useCommonNames)
 	return r
 end
 
-local function kwIsParentedBy(kw, rootId)
+function SyncObservations.kwIsParentedBy(kw, rootId)
 	if rootId == -1 or rootId == nil then
 		return false
 	end
@@ -234,7 +234,7 @@ local function syncKeywords(photo, kw, settings, keywordCache)
 	local unwanted = {}
 	local needsAddition = true
 	for _, oldKw in pairs(photo:getRawMetadata("keywords")) do
-		if kwIsParentedBy(oldKw, settings.syncKeywordsRoot) then
+		if SyncObservations.kwIsParentedBy(oldKw, settings.syncKeywordsRoot) then
 			if kwIsEquivalent(oldKw, kw, settings.syncKeywordsRoot) then
 				needsAddition = false
 			else

@@ -80,6 +80,9 @@ other collection in Lightroom. When you're ready to upload your images,
 navigate to the collection and click the "Publish" button at the top. Your
 images will be uploaded to iNaturalist, and observations will be created.
 
+Keywords on your photos may be used as iNaturalist tags, species guesses, or
+both, depending on how you configured the publish service.
+
 If you have multiple photos that belong to one observation, you can group them
 before publishing so that only one observation will be created. Select the
 photos that should be grouped together, and use the `File` -> `Plug-in Extras`
@@ -88,7 +91,7 @@ keyboard shortcut to this menu item (I use cmd-O on my Mac) to make this
 faster[^1].
 
 You can also add photos to existing observations in the same way -- just group
-the new photos with the observation and publish.
+the new photos with the photos already in the observation and publish.
 
 You can delete photos from iNaturalist by removing them from the "Observations"
 collection and publishing it again. If you remove all of the photos that belong

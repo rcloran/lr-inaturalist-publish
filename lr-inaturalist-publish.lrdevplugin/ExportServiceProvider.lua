@@ -20,13 +20,14 @@ local exportServiceProvider = {
 	exportPresetFields = {
 		{ key = "accessToken", default = "" },
 		{ key = "login", default = "" },
-		{ key = "uploadKeywords", default = false },
 		{ key = "syncKeywords", default = true },
 		{ key = "syncKeywordsCommon", default = true },
 		{ key = "syncKeywordsIncludeOnExport", default = true },
 		{ key = "syncKeywordsRoot", default = -1 },
 		{ key = "syncOnPublish", default = true },
 		{ key = "syncSearchIn", default = -1 },
+		{ key = "uploadKeywords", default = false },
+		{ key = "uploadKeywordsSpeciesGuess", default = true },
 	},
 	hideSections = {
 		"exportLocation",
@@ -92,13 +93,13 @@ local function getCollectionsForPopup(parent, indent)
 end
 
 function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
+	local catalog = LrApplication.activeCatalog()
 	LrTasks.startAsyncTask(function()
-		local cat = LrApplication.activeCatalog()
 		local r = { {
 			title = "--",
 			value = -1,
 		} }
-		local items = getCollectionsForPopup(cat, "")
+		local items = getCollectionsForPopup(catalog, "")
 		for i = 1, #items do
 			r[#r + 1] = items[i]
 		end
@@ -106,9 +107,8 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 	end)
 
 	LrTasks.startAsyncTask(function()
-		local cat = LrApplication.activeCatalog()
-		local r = {{title="--",value=-1}}
-		local kw = cat:getKeywords()
+		local r = { { title = "--", value = -1 } }
+		local kw = catalog:getKeywords()
 		for i = 1, #kw do
 			r[#r + 1] = {
 				title = kw[i]:getName(),
@@ -148,6 +148,48 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 			}),
 			f:checkbox({
 				value = bind("uploadKeywords"),
+				alignment = "left",
+			}),
+		}),
+		f:row({
+			spacing = f:control_spacing(),
+			f:static_text({
+				title = bind({
+					keys = { "syncKeywordsRoot", "syncKeywordsRootItems" },
+					transform = function(value, fromModel)
+						if not fromModel then
+							return value
+						end -- shouldn't happen
+						value = propertyTable.syncKeywordsRoot
+						for i, item in pairs(propertyTable.syncKeywordsRootItems) do
+							if item.value == value then
+								value = item.title
+							end
+						end
+						return 'Set species guess from keywords within "'
+							.. value
+							.. '" keyword\n'
+							.. '(The setting for which keyword is in the "Synchronization" section)'
+					end,
+				}),
+				alignment = "right",
+				height_in_lines = 2,
+				width = LrView.share("inaturalistSyncLabel"),
+			}),
+			f:checkbox({
+				value = bind("uploadKeywordsSpeciesGuess"),
+				enabled = bind({
+					key = "syncKeywordsRoot",
+					transform = function(value, fromModel)
+						if not fromModel then
+							return value
+						end -- shouldn't happen
+						if value and value ~= -1 then
+							return true
+						end
+						return false
+					end,
+				}),
 				alignment = "left",
 			}),
 		}),
@@ -223,7 +265,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = "Set \"Include on Export\" attribute on keywords",
+				title = 'Set "Include on Export" attribute on keywords',
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
 				enabled = bind("syncKeywords"),
@@ -236,8 +278,8 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = "Put keywords within this keyword:\n" ..
-				  "Note: If this isn't set, keywords can't be properly changed (see \"Help...\")",
+				title = "Put keywords within this keyword:\n"
+					.. "Note: If this isn't set, keywords can't be properly changed (see \"Help...\")",
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
 				enabled = bind("syncKeywords"),
@@ -311,14 +353,28 @@ local function makeObservationObj(photo, exportSettings)
 		observation.longitude = gps.longitude
 	end
 
+	local keywords = photo:getRawMetadata("keywords")
 	if exportSettings.uploadKeywords then
-		local keywords = photo:getRawMetadata("keywords")
 		if keywords and #keywords > 0 then
 			local tagList = keywords[1]:getName()
 			for i = 2, #keywords do
 				tagList = tagList .. "," .. keywords[i]:getName()
 			end
 			observation.tag_list = tagList
+		end
+	end
+
+	local rootId = exportSettings.syncKeywordsRoot
+	if exportSettings.uploadKeywordsSpeciesGuess and rootId and rootId ~= -1 then
+		for _, kw in pairs(keywords) do
+			-- If multiple are set we'll end up using the last one
+			if SyncObservations.kwIsParentedBy(kw, rootId) then
+				if exportSettings.syncKeywordsCommon and #kw:getSynonyms() >= 1 then
+					observation.species_guess = kw:getSynonyms()[1]
+				else
+					observation.species_guess = kw:getName()
+				end
+			end
 		end
 	end
 
@@ -334,7 +390,7 @@ local function uploadPhoto(api, observations, rendition, path, exportSettings)
 	local localObservationUUID = rendition.photo:getPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID)
 
 	if localObservationUUID and observations[localObservationUUID] then
-		-- In this case there's already an observation this session
+		-- There's already an observation that was created this session
 		local observation_photo = api:createObservationPhoto(path, observations[localObservationUUID])
 		LrFileUtils.delete(path)
 		local observation_stub = {
@@ -345,11 +401,11 @@ local function uploadPhoto(api, observations, rendition, path, exportSettings)
 		return observation_photo.photo, observation_stub
 	end
 
-	-- In this case we might have linked a new photo to an existing
-	-- observation, or it might be a new observation. In the former case,
-	-- POST to /observations will update the old observation, so we can
-	-- just do that. Any updated fields will change to the new value, but
-	-- if they're blank we omit them in the POST so they should stay.
+	-- We might have linked a new photo to an existing observation, or it might
+	-- be a new observation. In the former case, POST to /observations will
+	-- update the old observation, so we can just do that. Any updated fields
+	-- will change to the new value, but if they're blank we omit them in the
+	-- POST so they should stay.
 	local observation = makeObservationObj(rendition.photo, exportSettings)
 	observation = api:createObservation(observation)
 
