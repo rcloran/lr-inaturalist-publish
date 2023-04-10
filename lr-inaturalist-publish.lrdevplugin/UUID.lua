@@ -1,7 +1,7 @@
 local LrApplication = import("LrApplication")
 local sha2 = require("sha2")
 
-UUID = {}
+local UUID = {}
 
 -- Use the first 32 bits of a SHA256 hash as a random seed. Hash some
 -- slightly unique and unpredictable (hopefully) data for that. The result is

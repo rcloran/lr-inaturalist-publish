@@ -5,11 +5,11 @@ local LrDialogs = import("LrDialogs")
 local LrHttp = import("LrHttp")
 local LrTasks = import("LrTasks")
 
+local INaturalistAPI = require("INaturalistAPI")
 local JSON = require("JSON")
 local sha2 = require("sha2")
-require("INaturalistAPI")
 
-INaturalistUser = {}
+local INaturalistUser = {}
 
 function INaturalistUser.clearLoginData(propertyTable)
 	propertyTable.accessToken = nil
@@ -118,3 +118,5 @@ function INaturalistUser.getToken(code, challenge)
 	data = JSON:decode(data)
 	return data.access_token
 end
+
+return INaturalistUser

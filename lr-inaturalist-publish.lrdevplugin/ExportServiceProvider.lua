@@ -11,8 +11,9 @@ local LrView = import("LrView")
 
 local bind = LrView.bind
 
-require("INaturalistMetadata")
-require("INaturalistUser")
+local INaturalistAPI = require("INaturalistAPI")
+local INaturalistMetadata = require("INaturalistMetadata")
+local INaturalistUser = require("INaturalistUser")
 local SyncObservations = require("SyncObservations")
 
 local exportServiceProvider = {

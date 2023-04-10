@@ -5,10 +5,10 @@ local LrDate = import("LrDate")
 local LrFunctionContext = import("LrFunctionContext")
 local LrProgressScope = import("LrProgressScope")
 
-require("INaturalistAPI")
-require("INaturalistMetadata")
+local INaturalistAPI = require("INaturalistAPI")
+local INaturalistMetadata = require("INaturalistMetadata")
 
-SyncObservations = {}
+local SyncObservations = {}
 
 local function commonName(taxon)
 	-- TODO: Find proper translations for names. For now, be English-centric

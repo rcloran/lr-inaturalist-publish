@@ -2,7 +2,7 @@ local logger = import("LrLogger")("lr-inaturalist-publish")
 local LrApplication = import("LrApplication")
 local LrDialogs = import("LrDialogs")
 
-require("INaturalistMetadata")
+local INaturalistMetadata = require("INaturalistMetadata")
 
 -- Clear the observation UUID field on selected photos
 local function clearObservation()
@@ -24,7 +24,6 @@ local function clearObservation()
 			photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationURL, nil)
 		end
 	end)
-
 end
 
 import("LrTasks").startAsyncTask(clearObservation)

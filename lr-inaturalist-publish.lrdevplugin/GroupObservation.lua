@@ -2,7 +2,8 @@ local logger = import("LrLogger")("lr-inaturalist-publish")
 local LrApplication = import("LrApplication")
 local LrDialogs = import("LrDialogs")
 
-require("INaturalistMetadata")
+local INaturalistMetadata = require("INaturalistMetadata")
+local UUID = require("UUID")
 
 -- Group photos into an observation. That is, assign observation UUIDs.
 local function groupObservation()
@@ -38,7 +39,6 @@ local function groupObservation()
 			photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID, uuid)
 		end
 	end)
-
 end
 
 import("LrTasks").startAsyncTask(groupObservation)

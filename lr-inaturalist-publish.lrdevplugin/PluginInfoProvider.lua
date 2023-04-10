@@ -20,11 +20,11 @@ function Info.sectionsForTopOfDialog(f, propertyTable)
 			f:popup_menu({
 				value = bind("logLevel"),
 				items = {
-					{title="None", value=nil},
-					{title="Trace", value="trace"},
+					{ title = "None", value = nil },
+					{ title = "Trace", value = "trace" },
 				},
 			}),
-		})
+		}),
 	}
 
 	return { settings }

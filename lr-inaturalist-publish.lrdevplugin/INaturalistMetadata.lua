@@ -1,4 +1,4 @@
-INaturalistMetadata = {
+local INaturalistMetadata = {
 	CommonName = "iNaturalistCommonName",
 	Name = "iNaturalistName",
 	CommonTaxonomy = "iNaturalistCommonTaxonomy",
@@ -7,3 +7,5 @@ INaturalistMetadata = {
 	ObservationUUID = "iNaturalistObservationUUID",
 	ObservationURL = "iNaturalistObservationURL",
 }
+
+return INaturalistMetadata

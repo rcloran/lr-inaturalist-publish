@@ -7,7 +7,7 @@ local LrStringUtils = import("LrStringUtils")
 
 local JSON = require("JSON")
 
-INaturalistAPI = {
+local INaturalistAPI = {
 	clientId = "abue3CpJkLe1adPWFNFzrCj_riap_diH0bpGGq2HYIE",
 	oauthRedirect = "lightroom://net.rcloran.lr-inaturalist-publish/authorization-redirect",
 	apiBase = "https://api.inaturalist.org/v1/",
@@ -392,3 +392,5 @@ function INaturalistAPI:deletePhoto(id)
 	self.api_token = data.api_token
 	return data.api_token
 end
+
+return INaturalistAPI

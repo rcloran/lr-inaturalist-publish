@@ -1,4 +1,4 @@
-require("INaturalistMetadata")
+local INaturalistMetadata = require("INaturalistMetadata")
 
 return {
 	metadataFieldsForPhotos = {
