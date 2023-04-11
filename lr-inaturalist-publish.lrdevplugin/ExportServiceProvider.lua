@@ -1,5 +1,3 @@
-require("strict")
-
 local logger = import("LrLogger")("lr-inaturalist-publish")
 local LrApplication = import("LrApplication")
 local LrDialogs = import("LrDialogs")

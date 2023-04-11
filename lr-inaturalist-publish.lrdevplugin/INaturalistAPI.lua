@@ -1,5 +1,3 @@
-require("strict")
-
 local logger = import("LrLogger")("lr-inaturalist-publish")
 local LrHttp = import("LrHttp")
 local LrPathUtils = import("LrPathUtils")
