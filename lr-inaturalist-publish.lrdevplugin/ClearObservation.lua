@@ -1,4 +1,3 @@
-local logger = import("LrLogger")("lr-inaturalist-publish")
 local LrApplication = import("LrApplication")
 local LrDialogs = import("LrDialogs")
 
@@ -18,7 +17,7 @@ local function clearObservation()
 		return
 	end
 
-	catalog:withWriteAccessDo("Clear observation", function(context)
+	catalog:withWriteAccessDo("Clear observation", function(_)
 		for _, photo in pairs(photos) do
 			photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID, nil)
 			photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationURL, nil)

@@ -39,7 +39,7 @@ end
 local function generateSecret()
 	-- This is not great :(
 	local s = ""
-	for i = 1, 32 do
+	for _ = 1, 32 do
 		s = s .. string.char(math.random(0, 255))
 	end
 	return base64urlencode(s)
@@ -105,13 +105,11 @@ function INaturalistUser.getToken(code, challenge)
 		redirect_uri = INaturalistAPI.oauthRedirect,
 	}
 	body = INaturalistAPI.formEncode(body)
-	local data, headers = LrHttp.post(url, body, headers)
-	if headers.error then
-		msg = string.format("Error logging in: %s", headers.error.name)
-		error(msg)
-	elseif headers.status ~= 200 then
-		msg = string.format("iNaturalist API error: %s", data)
-		error(msg)
+	local data, respHeaders = LrHttp.post(url, body, headers)
+	if respHeaders.error then
+		error(string.format("Error logging in: %s", headers.error.name))
+	elseif respHeaders.status ~= 200 then
+		error(string.format("iNaturalist API error: %s", data))
 	end
 	data = JSON:decode(data)
 	return data.access_token

@@ -16,7 +16,7 @@ local INaturalistAPI = {
 -- needed.
 function INaturalistAPI:new(accessToken)
 	local o = {}
-	setmetatable(o, { __index = INaturalistAPI })
+	setmetatable(o, { __index = self })
 	o.accessToken = accessToken
 	return o
 end
@@ -43,7 +43,6 @@ local function maybeError(headers)
 	if headers.error then
 		error({ code = headers.error.errorCode, message = headers.error.name })
 	elseif headers.status ~= 200 then
-		local msg = string.format("API error: %s", headers.status)
 		error({ code = headers.status, message = headers.statusDes })
 	end
 end
@@ -61,9 +60,9 @@ function INaturalistAPI:apiGet(path)
 	local url = INaturalistAPI.apiBase .. path
 	local headers = self:headers()
 
-	local data, headers = LrHttp.get(url, headers)
+	local data, respHeaders = LrHttp.get(url, headers)
 
-	maybeError(headers)
+	maybeError(respHeaders)
 	return JSON:decode(data)
 end
 
@@ -86,9 +85,9 @@ function INaturalistAPI:apiPost(path, content, method, content_type)
 		content = ""
 	end
 
-	local data, headers = LrHttp.post(url, content, headers, method)
+	local data, respHeaders = LrHttp.post(url, content, headers, method)
 
-	maybeError(headers)
+	maybeError(respHeaders)
 	return JSON:decode(data)
 end
 
@@ -97,9 +96,9 @@ function INaturalistAPI:apiPostMultipart(path, content)
 	local url = INaturalistAPI.apiBase .. path
 	local headers = self:headers()
 
-	local data, headers = LrHttp.postMultipart(url, content, headers)
+	local data, respHeaders = LrHttp.postMultipart(url, content, headers)
 
-	maybeError(headers)
+	maybeError(respHeaders)
 	return JSON:decode(data)
 end
 
@@ -122,9 +121,9 @@ function INaturalistAPI:getAPIToken()
 		{ field = "Accept", value = "application/json" },
 		{ field = "Authorization", value = "Bearer " .. self.accessToken },
 	}
-	local data, headers = LrHttp.get(url, headers)
+	local data, respHeaders = LrHttp.get(url, headers)
 
-	maybeError(headers)
+	maybeError(respHeaders)
 
 	data = JSON:decode(data)
 	self.api_token = data.api_token
@@ -221,7 +220,7 @@ end
 -- Overrides per_page, order_by, order, id_above, id_below in the search;
 -- results are always ordered descending by id.
 function INaturalistAPI:listObservationsWithPagination(search, progress)
-	local results, resultsRemain, totalResults = {}, true, nil
+	local results, resultsRemain = {}, true
 
 	search = shallowCopy(search)
 	search.per_page = 100
@@ -237,11 +236,7 @@ function INaturalistAPI:listObservationsWithPagination(search, progress)
 
 		local qs = INaturalistAPI.formEncode(search)
 		local newResults = self:apiGet("observations?" .. qs)
-		if not totalResults then
-			-- total_results keeps changing on us because id_below.
-			-- Save value from first query.
-			totalResults = newResults.total_results
-		end
+		-- total_results keeps changing on us because id_below.
 		local totalResults = newResults.total_results + #results
 		for i = 1, #newResults.results do
 			results[#results + 1] = newResults.results[i]
@@ -382,9 +377,9 @@ function INaturalistAPI:deletePhoto(id)
 		{ field = "Accept", value = "application/json" },
 		{ field = "Authorization", value = self:jwt() },
 	}
-	local data, headers = LrHttp.post(url, "", headers, "DELETE")
+	local data, respHeaders = LrHttp.post(url, "", headers, "DELETE")
 
-	maybeError(headers)
+	maybeError(respHeaders)
 
 	data = JSON:decode(data)
 	self.api_token = data.api_token
