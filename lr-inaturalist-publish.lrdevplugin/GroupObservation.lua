@@ -1,4 +1,3 @@
-local logger = import("LrLogger")("lr-inaturalist-publish")
 local LrApplication = import("LrApplication")
 local LrDialogs = import("LrDialogs")
 
@@ -34,7 +33,7 @@ local function groupObservation()
 		uuid = UUID.uuid4()
 	end
 
-	catalog:withWriteAccessDo("Group into observation", function(context)
+	catalog:withWriteAccessDo("Group into observation", function(_)
 		for _, photo in pairs(photos) do
 			photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID, uuid)
 		end

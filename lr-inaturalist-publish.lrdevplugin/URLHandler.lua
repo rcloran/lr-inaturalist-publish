@@ -1,5 +1,3 @@
-require("strict")
-
 local logger = import("LrLogger")("lr-inaturalist-publish")
 local INaturalistAPI = require("INaturalistAPI")
 local INaturalistUser = require("INaturalistUser")

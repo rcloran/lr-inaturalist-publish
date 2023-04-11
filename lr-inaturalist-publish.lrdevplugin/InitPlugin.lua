@@ -2,7 +2,7 @@ local logger = import("LrLogger")("lr-inaturalist-publish")
 
 local prefs = import("LrPrefs").prefsForPlugin()
 
-local function configureLogging(prefs, _, value)
+local function configureLogging(_, _, value)
 	logger:disable()
 	if value == "trace" then
 		logger:enable("logfile")
@@ -11,9 +11,7 @@ local function configureLogging(prefs, _, value)
 end
 
 prefs:addObserver("logLevel", configureLogging)
-configureLogging(prefs, _, prefs.logLevel)
+configureLogging(prefs, "logLevel", prefs.logLevel)
 logger:trace("------------------ Starting iNaturalist Publish Service Plugin")
 
-_VERSION = "Lua 5.1" -- sha2 needs _VERSION
-
-local UUID = require("UUID") -- Set up UUID/randomness
+require("UUID") -- Set up UUID/randomness

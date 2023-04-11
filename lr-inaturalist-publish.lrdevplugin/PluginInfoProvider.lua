@@ -1,4 +1,3 @@
-local logger = import("LrLogger")("lr-inaturalist-publish")
 local prefs = import("LrPrefs").prefsForPlugin()
 local LrView = import("LrView")
 
@@ -6,7 +5,7 @@ local bind = LrView.bind
 
 local Info = {}
 
-function Info.sectionsForTopOfDialog(f, propertyTable)
+function Info.sectionsForTopOfDialog(f, _)
 	local settings = {
 		title = "Plugin options",
 		bind_to_object = prefs,

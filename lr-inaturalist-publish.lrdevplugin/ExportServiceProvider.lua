@@ -1,5 +1,3 @@
-require("strict")
-
 local logger = import("LrLogger")("lr-inaturalist-publish")
 local LrApplication = import("LrApplication")
 local LrDialogs = import("LrDialogs")
@@ -84,8 +82,8 @@ local function getCollectionsForPopup(parent, indent)
 				title = indent .. children[i]:getName(),
 				value = children[i].localIdentifier,
 			}
-			for i = 1, #childrenItems do
-				r[#r + 1] = childrenItems[i]
+			for j = 1, #childrenItems do
+				r[#r + 1] = childrenItems[j]
 			end
 		end
 	end
@@ -162,7 +160,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 							return value
 						end -- shouldn't happen
 						value = propertyTable.syncKeywordsRoot
-						for i, item in pairs(propertyTable.syncKeywordsRootItems) do
+						for _, item in pairs(propertyTable.syncKeywordsRootItems) do
 							if item.value == value then
 								value = item.title
 							end
@@ -461,7 +459,7 @@ local function maybeDeleteOld(api, photoId)
 	LrDialogs.message("Error while updating photo", msg)
 end
 
-function exportServiceProvider.processRenderedPhotos(functionContext, exportContext)
+function exportServiceProvider.processRenderedPhotos(_, exportContext)
 	local exportSession = exportContext.exportSession
 	local exportSettings = exportContext.propertyTable
 
@@ -606,7 +604,7 @@ function exportServiceProvider.deletePhotosFromPublishedCollection(
 	end
 end
 
-function exportServiceProvider.getCollectionBehaviorInfo(publishSettings)
+function exportServiceProvider.getCollectionBehaviorInfo(_)
 	return {
 		defaultCollectionName = "Observations",
 		defaultCollectionCanBeDeleted = false,
@@ -615,16 +613,16 @@ function exportServiceProvider.getCollectionBehaviorInfo(publishSettings)
 	}
 end
 
-function exportServiceProvider.goToPublishedCollection(publishSettings, info)
+function exportServiceProvider.goToPublishedCollection(publishSettings, _)
 	LrHttp.openUrlInBrowser("https://www.inaturalist.org/observations/" .. publishSettings.login)
 end
 
-function exportServiceProvider.didCreateNewPublishService(publishSettings, info)
+function exportServiceProvider.didCreateNewPublishService(publishSettings, _)
 	local f = LrView.osFactory()
 	local mainMsg = "This will take some time."
 	if publishSettings.syncOnPublish then
-		mainMsg =
-			"This will take some time. If you do not do this now it will happen automatically the first time you publish using this plugin."
+		mainMsg = "This will take some time. If you do not do this now it will happen "
+			.. "automatically the first time you publish using this plugin."
 	end
 	local c = {
 		spacing = f:dialog_spacing(),
@@ -637,7 +635,8 @@ function exportServiceProvider.didCreateNewPublishService(publishSettings, info)
 	}
 	if publishSettings.syncSearchIn == -1 then
 		c[#c + 1] = f:static_text({
-			title = "You have not set a collection to which to limit the search for matching photos. This may result in a low number of matches.",
+			title = "You have not set a collection to which to limit the search "
+				.. "for matching photos. This may result in a low number of matches.",
 			fill_horizontal = 1,
 			width_in_chars = 50,
 			height_in_lines = 2,

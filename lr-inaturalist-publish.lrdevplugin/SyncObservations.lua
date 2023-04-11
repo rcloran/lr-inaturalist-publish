@@ -311,7 +311,7 @@ local function setLastSync(publishSettings, lastSync)
 	end, { timeout = 30 })
 end
 
-local function makePhotoSearchQuery(observation, pubCollection)
+local function makePhotoSearchQuery(observation, _)
 	-- The LR data is timezoneless (at least in search).
 	-- I think it's correct to query it without the TZ from iNaturalist,
 	-- since from what I've seen there can be a mismatch in TZ between the
@@ -366,7 +366,6 @@ local function filterMatchedPhotos(observation, photos, filterCollection)
 	-- observation.
 	for _, photo in pairs(photos) do
 		-- Searching based on collection is slow, this seems faster
-		local collections = photo:getContainedCollections()
 		for _, c in pairs(photo:getContainedCollections()) do
 			if c.localIdentifier == filterCollection then
 				r[#r + 1] = photo
@@ -468,7 +467,7 @@ local function sync(functionContext, settings, progress, api, lastSync)
 		parent = progress,
 		parentEndRange = 0.5,
 	})
-	dlProgress.setCaption = function(self, caption)
+	dlProgress.setCaption = function(_, caption)
 		-- I don't understand the API docs on how captions for child
 		-- scopes are supposed to work. Setting the parent scope's
 		-- caption seems to do what I actually want.
@@ -503,7 +502,7 @@ local function sync(functionContext, settings, progress, api, lastSync)
 
 		local searchDesc = makePhotoSearchQuery(observation, collection)
 		local photos = catalog:findPhotos({ searchDesc = searchDesc })
-		local matchedByUUID = false
+		local matchedByUUID
 		photos, matchedByUUID = filterMatchedPhotos(observation, photos, settings.syncSearchIn)
 
 		if #photos == 1 or matchedByUUID then
@@ -557,7 +556,7 @@ function SyncObservations.sync(settings, progress, api)
 	local lastSync = getLastSync(settings)
 	if not lastSync then
 		-- Get prolonged write access if we're doing a full sync
-		return SyncObservations.fullSync(settings, progress, api)
+		return SyncObservations.fullSync(settings, api)
 	end
 
 	return LrFunctionContext.callWithContext("SyncObservations.sync", function(context)
@@ -573,7 +572,7 @@ function SyncObservations.sync(settings, progress, api)
 	end)
 end
 
-function SyncObservations.fullSync(settings, progress, api)
+function SyncObservations.fullSync(settings, api)
 	local catalog = LrApplication.activeCatalog()
 	local observations = {}
 	catalog:withProlongedWriteAccessDo({
