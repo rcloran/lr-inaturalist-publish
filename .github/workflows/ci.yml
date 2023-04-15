@@ -1,0 +1,55 @@
+---
+name: Test & build
+on: [push, pull_request]
+permissions:
+  contents: write
+jobs:
+  luacheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: lunarmodules/luacheck@v1
+  stylua:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: JohnnyMorganz/stylua-action@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: latest
+          args: --check .
+  build:
+    needs: [luacheck, stylua]  # Only build good code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Build
+        id: build
+        run: ./build/build.sh
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.build.outputs.built_name }}
+          path: ${{ steps.build.outputs.built_zip }}
+      - uses: softprops/action-gh-release@v1
+        name: Upload nightly
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: nightly
+          files: ${{ steps.build.outputs.built_zip }}
+      - uses: actions/github-script@v6
+        name: Remove old nightlies
+        if: github.ref == 'refs/heads/main'
+        # The script is not resilient to failure. That's OK, next run should
+        # clean up any dangling nightlies.
+        continue-on-error: true
+        with:
+          script: |
+            const clean = require('.github/workflows/cleannightly.js')
+            await clean({github, context})
+      - uses: softprops/action-gh-release@v1
+        name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          files: ${{ steps.build.outputs.built_zip }}
