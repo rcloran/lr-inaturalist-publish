@@ -11,6 +11,9 @@ local menuItems = {
 	},
 }
 
+-- This is substituted by the build script, based on git tags.
+local DEV_VERSION = { major = 0, minor = 1, revision = 0, display = "Development" }
+
 return {
 	-- Have not tried to check what the right value is here. Guess.
 	LrSdkVersion = 6,
@@ -34,5 +37,5 @@ return {
 	LrExportMenuItems = menuItems,
 	LrLibraryMenuItems = menuItems,
 
-	VERSION = { major = 0, minor = 1, revision = 0 },
+	VERSION = DEV_VERSION,
 }

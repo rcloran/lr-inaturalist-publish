@@ -5,8 +5,10 @@ catalog with metadata from iNaturalist.
 
 ## Installation
 
-1) Copy the lr-inaturalist-publish.lrdevplugin directory somewhere you would
-   like the plugin to be stored.
+1) Download one of the release zip files from [the releases page on
+   GitHub](https://github.com/rcloran/lr-inaturalist-publish/releases)
+2) Unzip it and copy the lr-inaturalist-publish.lrplugin directory somewhere
+   you would like the plugin to be stored.
 
    On macOS, the standard location for Lightroom Classic plugins is
    `~/Library/Application Support/Adobe/Lightroom/Modules` (that is, within
