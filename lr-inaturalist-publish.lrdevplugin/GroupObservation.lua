@@ -14,18 +14,22 @@ local function groupObservation()
 		return
 	end
 
-	local uuid = nil
+	local uuid, url = nil, nil
 	for _, photo in pairs(photos) do
-		local existingUUID = photo:getPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID)
-		if existingUUID and #existingUUID > 0 then
-			if uuid ~= nil and uuid ~= existingUUID then
+		local thisUUID = photo:getPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID)
+		local thisURL = photo:getPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationURL)
+		if thisUUID and #thisUUID > 0 then
+			if uuid ~= nil and uuid ~= thisUUID then
 				LrDialogs.message(
 					"Conflicting observations",
 					"Two photos in the selection already belong to different observations"
 				)
 				return
 			end
-			uuid = existingUUID
+			uuid = thisUUID
+			if thisURL and #thisURL > 0 then
+				url = thisURL
+			end
 		end
 	end
 
@@ -36,6 +40,7 @@ local function groupObservation()
 	catalog:withWriteAccessDo("Group into observation", function(_)
 		for _, photo in pairs(photos) do
 			photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID, uuid)
+			photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationURL, url)
 		end
 		local msg = "Grouped %s photos into 1 observation"
 		LrDialogs.showBezel(string.format(msg, #photos))
