@@ -388,7 +388,12 @@ local function filterMatchedPhotos(observation, photos, filterCollection)
 		for _, photo in pairs(photos) do
 			local photoGPS = photo:getRawMetadata("gps")
 			if photoGPS then
-				local gpsMatch = obsGPS[2] == photoGPS.latitude and obsGPS[1] == photoGPS.longitude
+				local maxErr =
+					math.max(math.abs(obsGPS[2] - photoGPS.latitude), math.abs(obsGPS[1] - photoGPS.longitude))
+				-- 1e-5 is within 1.11m at worst case (equator). We
+				-- could/should be a bit tighter here since we really only need
+				-- to account for floating point error.
+				local gpsMatch = maxErr < 1e-5
 
 				if gpsMatch then
 					r[#r + 1] = photo
