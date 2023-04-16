@@ -37,6 +37,8 @@ local function groupObservation()
 		for _, photo in pairs(photos) do
 			photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID, uuid)
 		end
+		local msg = "Grouped %s photos into 1 observation"
+		LrDialogs.showBezel(string.format(msg, #photos))
 	end)
 end
 

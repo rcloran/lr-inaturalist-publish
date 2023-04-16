@@ -22,6 +22,11 @@ local function clearObservation()
 			photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID, nil)
 			photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationURL, nil)
 		end
+		local msg = "Removed observation metadata from %s photos"
+		if #photos == 1 then
+			msg = "Removed observation metadata from %s photo"
+		end
+		LrDialogs.showBezel(string.format(msg, #photos))
 	end)
 end
 
