@@ -1,12 +1,12 @@
 local LrApplication = import("LrApplication")
 local sha2 = require("sha2")
 
-local UUID = {}
+local Random = {}
 
 -- Use the first 32 bits of a SHA256 hash as a random seed. Hash some
 -- slightly unique and unpredictable (hopefully) data for that. The result is
 -- still not good.
-function UUID.seed()
+function Random.seed()
 	local seed_s = LrApplication.macAddressHash() .. os.time() .. os.clock()
 	-- Perhaps something unpredictable in memory addresses of globals. ¯\_(ツ)_/¯
 	for _, v in pairs(_G) do
@@ -22,7 +22,7 @@ function UUID.seed()
 	math.randomseed(seed % 2 ^ 31) -- Lua 5.1 only works properly with 31-bit here
 end
 
-function UUID.uuid4()
+function Random.uuid4()
 	-- Some segments broken up into two parts to avoid getting to/over
 	-- 2^32, which would overflow the unsigned int to which these are cast
 	-- (see rand(3)).
@@ -39,11 +39,20 @@ function UUID.uuid4()
 	)
 end
 
+function Random.rand256()
+	-- 256 bits (32 bytes) of random
+	local s = ""
+	for _ = 1, 32 do
+		s = s .. string.char(math.random(0, 255))
+	end
+	return s
+end
+
 local urandom = io.open("/dev/urandom", "rb")
 if urandom then
 	-- If we have access to a high quality source of randomness, then use that
 	-- by installing a better function.
-	UUID.uuid4 = function()
+	Random.uuid4 = function()
 		local b = urandom:read(16)
 		-- High nibble of version = 0100
 		local version = string.char(64 + string.byte(b:sub(7, 7)) % 16)
@@ -62,8 +71,12 @@ if urandom then
 
 		return b
 	end
+
+	Random.rand256 = function()
+		return urandom:read(32)
+	end
 else
-	UUID.seed()
+	Random.seed()
 end
 
-return UUID
+return Random

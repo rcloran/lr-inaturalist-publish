@@ -2,7 +2,7 @@ local LrApplication = import("LrApplication")
 local LrDialogs = import("LrDialogs")
 
 local INaturalistMetadata = require("INaturalistMetadata")
-local UUID = require("UUID")
+local Random = require("Random")
 
 -- Group photos into an observation. That is, assign observation UUIDs.
 local function groupObservation()
@@ -34,7 +34,7 @@ local function groupObservation()
 	end
 
 	if uuid == nil then
-		uuid = UUID.uuid4()
+		uuid = Random.uuid4()
 	end
 
 	catalog:withWriteAccessDo("Group into observation", function(_)

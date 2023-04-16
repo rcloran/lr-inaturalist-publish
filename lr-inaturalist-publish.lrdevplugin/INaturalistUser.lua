@@ -5,6 +5,7 @@ local LrTasks = import("LrTasks")
 
 local INaturalistAPI = require("INaturalistAPI")
 local JSON = require("JSON")
+local Random = require("Random")
 local sha2 = require("sha2")
 
 local INaturalistUser = {}
@@ -37,12 +38,7 @@ local function base64urlencode(s)
 end
 
 local function generateSecret()
-	-- This is not great :(
-	local s = ""
-	for _ = 1, 32 do
-		s = s .. string.char(math.random(0, 255))
-	end
-	return base64urlencode(s)
+	return base64urlencode(Random.rand256())
 end
 
 function INaturalistUser.login(propertyTable)

@@ -14,4 +14,4 @@ prefs:addObserver("logLevel", configureLogging)
 configureLogging(prefs, "logLevel", prefs.logLevel)
 logger:trace("------------------ Starting iNaturalist Publish Service Plugin")
 
-require("UUID") -- Set up UUID/randomness
+require("Random") -- Set up UUID/randomness
