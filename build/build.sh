@@ -11,7 +11,7 @@ src=lr-inaturalist-publish.lrdevplugin
 name=lr-inaturalist-publish
 plug=${name}.lrplugin
 
-description=$(git describe --tags --match "v[0-9]*.[0-9]*.[0-9]*" --exclude 'v*[!0-9.]*' --long --dirty)
+description=$(git describe --match "v[0-9]*.[0-9]*.[0-9]*" --exclude 'v*[!0-9.]*' --long --dirty)
 last_tag=${description%%-*}
 commits_since_tag=${description%-*}
 commits_since_tag=${commits_since_tag#*-}
