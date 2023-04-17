@@ -119,7 +119,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 
 	local account = {
 		title = "iNaturalist Account",
-		synopsis = "Account status",
+		synopsis = bind("accountStatus"),
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
