@@ -1,4 +1,5 @@
 local logger = import("LrLogger")("lr-inaturalist-publish")
+local LrTasks = import("LrTasks")
 
 local prefs = import("LrPrefs").prefsForPlugin()
 
@@ -15,3 +16,7 @@ configureLogging(prefs, "logLevel", prefs.logLevel)
 logger:trace("------------------ Starting iNaturalist Publish Service Plugin")
 
 require("Random") -- Set up UUID/randomness
+
+LrTasks.startAsyncTask(function()
+	require("Updates").check(false)
+end)
