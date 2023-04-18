@@ -118,7 +118,9 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 				title = bind("loginButtonTitle"),
 				enabled = bind("loginButtonEnabled"),
 				action = function()
-					Login.login(propertyTable)
+					LrTasks.startAsyncTask(function()
+						Login.login(propertyTable)
+					end)
 				end,
 			}),
 		}),

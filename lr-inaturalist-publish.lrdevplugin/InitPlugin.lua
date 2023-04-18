@@ -11,8 +11,6 @@ local function configureLogging(_, _, value)
 	end
 end
 
-require("Random") -- Set up UUID/randomness
-
 LrTasks.startAsyncTask(function()
 	prefs:addObserver("logLevel", configureLogging)
 	configureLogging(prefs, "logLevel", prefs.logLevel)
