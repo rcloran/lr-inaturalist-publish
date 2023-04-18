@@ -1,5 +1,9 @@
+local logger = import("LrLogger")("lr-inaturalist-publish")
 local prefs = import("LrPrefs").prefsForPlugin()
 local LrDialogs = import("LrDialogs")
+local LrFileUtils = import("LrFileUtils")
+local LrFunctionContext = import("LrFunctionContext")
+local LrPathUtils = import("LrPathUtils")
 local LrHttp = import("LrHttp")
 local LrTasks = import("LrTasks")
 
@@ -30,7 +34,73 @@ local function getLatestVersion()
 		return
 	end
 
+	logger:tracef("Found update: %s", release.tag_name)
 	return release
+end
+
+local function shellquote(s)
+	-- Quote a file name so it's ready to concat into a command
+	if MAC_ENV then
+		s = s:gsub("'", "'\\''")
+		return "'" .. s .. "'"
+	else -- WIN_ENV
+		-- Double quotes are not allowed in file names, so take the easy path
+		return '"' .. s .. '"'
+	end
+end
+
+local function download(release, filename)
+	local data, headers = LrHttp.get(release.assets[1].browser_download_url)
+	if headers.error then
+		return false
+	end
+
+	if LrFileUtils.exists(filename) and not LrFileUtils.isWritable(filename) then
+		error("Cannot write to download file")
+	end
+
+	local f = io.open(filename, "wb")
+	f:write(data)
+	f:close()
+end
+
+local function extract(filename, workdir)
+	local cmd = "tar -C " .. shellquote(workdir) .. " -xf " .. shellquote(filename)
+	logger:trace(cmd)
+	local ret = LrTasks.execute(cmd)
+	if ret ~= 0 then
+		error("Could not extract downloaded release file")
+	end
+end
+
+local function install(workdir, pluginPath)
+	local newPluginPath = nil
+	for path in LrFileUtils.directoryEntries(workdir) do
+		if path:find("%.lrplugin$") then
+			newPluginPath = path
+		end
+	end
+	local scratch = LrFileUtils.chooseUniqueFileName(newPluginPath)
+	LrFileUtils.move(pluginPath, scratch)
+	LrFileUtils.move(newPluginPath, pluginPath)
+	-- Don't need to delete scratch, since workdir cleanup will
+end
+
+local function downloadAndInstall(ctx, release)
+	-- Work in sibling to the plugin folder so that moves are just renames
+	local workdir = LrFileUtils.chooseUniqueFileName(_PLUGIN.path)
+	ctx:addCleanupHandler(function()
+		LrFileUtils.delete(workdir)
+	end)
+	local r = LrFileUtils.createDirectory(workdir)
+	if not r then
+		error("Cannot create temporary directory")
+	end
+	local zip = LrPathUtils.child(workdir, "download.zip")
+
+	download(release, zip)
+	extract(zip, workdir)
+	install(workdir, _PLUGIN.path)
 end
 
 local function showUpdateDialog(release, force)
@@ -65,7 +135,17 @@ local function showUpdateDialog(release, force)
 			return
 		end
 
-		LrHttp.openUrlInBrowser(release.assets[1].browser_download_url)
+		if LrTasks.execute("tar --help") == 0 then
+			LrFunctionContext.callWithContext("downloadAndInstall", downloadAndInstall, release)
+			LrDialogs.message(
+				"iNaturalist Publish Plugin update installed",
+				"Please restart Lightroom, or reload the plugin (from Plug-in Manager)",
+				"info"
+			)
+		else
+			-- We need the user to download and extract the zip file
+			LrHttp.openUrlInBrowser(release.assets[1].browser_download_url)
+		end
 	end
 end
 
@@ -98,7 +178,8 @@ function Updates.forceUpdate()
 		if v then
 			LrDialogs.message(
 				"No updates available",
-				string.format("You have the most recent version of the iNaturalist Publish Plugin, %s", v)
+				string.format("You have the most recent version of the iNaturalist Publish Plugin, %s", v),
+				"info"
 			)
 		end
 	end)
