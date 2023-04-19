@@ -364,15 +364,17 @@ local function filterMatchedPhotos(observation, photos, filterCollection)
 	-- Only fall through to a less certain match if we were unsure about
 	-- which photos in the catalog were actually published to the
 	-- observation.
-	for _, photo in pairs(photos) do
-		-- Searching based on collection is slow, this seems faster
-		for _, c in pairs(photo:getContainedCollections()) do
-			if c.localIdentifier == filterCollection then
-				r[#r + 1] = photo
+	if filterCollection and filterCollection ~= -1 then
+		for _, photo in pairs(photos) do
+			-- Searching based on collection is slow, this seems faster
+			for _, c in pairs(photo:getContainedCollections()) do
+				if c.localIdentifier == filterCollection then
+					r[#r + 1] = photo
+				end
 			end
 		end
+		photos, r = r, {}
 	end
-	photos, r = r, {}
 
 	-- We already matched time in the search, don't need to double check it
 	-- here.
