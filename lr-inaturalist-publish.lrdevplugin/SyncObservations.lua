@@ -118,7 +118,12 @@ local function toISO8601(t)
 	if t == nil then
 		return nil
 	end
-	local v = LrDate.timeToW3CDate(t) .. "Z"
+	local v = LrDate.timeToW3CDate(t)
+	if #v == 19 then
+		-- On macOS timeToW3CDate returns a timezoneless string that is
+		-- actually UTC
+		return v .. "Z"
+	end
 	return v
 end
 
