@@ -41,8 +41,10 @@ end
 
 local function maybeError(headers)
 	if headers.error then
+		logger:debugf("LrHttp error: %s: %s", headers.error.errorCode, headers.error.name)
 		error({ code = headers.error.errorCode, message = headers.error.name })
 	elseif headers.status ~= 200 then
+		logger:debugf("http status not 200: %s: %s", headers.status, headers.statusDes)
 		error({ code = headers.status, message = headers.statusDes })
 	end
 end
