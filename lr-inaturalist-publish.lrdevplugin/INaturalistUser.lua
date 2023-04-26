@@ -68,7 +68,7 @@ function INaturalistUser.handleAuthRedirect(url)
 
 	if params["code"] then
 		local propertyTable = INaturalistUser.inProgressLogin
-		if propertyTable == nil then
+		if not (propertyTable and propertyTable.pkceChallenge) then
 			LrDialogs.message(
 				"Unexpected iNaturalist login received",
 				"No login is in progress. Leave the publishing manager open while authorizing with iNaturalist in your browser."
