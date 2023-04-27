@@ -3,6 +3,7 @@ local LrHttp = import("LrHttp")
 local LrPasswords = import("LrPasswords")
 local LrPathUtils = import("LrPathUtils")
 local LrStringUtils = import("LrStringUtils")
+local LrTasks = import("LrTasks")
 
 local JSON = require("JSON")
 
@@ -43,14 +44,36 @@ function INaturalistAPI.formEncode(t)
 	return table.concat(fields, "&")
 end
 
-local function maybeError(headers)
-	if headers.error then
-		logger:debugf("LrHttp error: %s: %s", headers.error.errorCode, headers.error.name)
-		error({ code = headers.error.errorCode, message = headers.error.name })
-	elseif headers.status ~= 200 then
-		logger:debugf("http status not 200: %s: %s", headers.status, headers.statusDes)
-		error({ code = headers.status, message = headers.statusDes })
+local retryable = {
+	[503] = true,
+	["networkConnectionLost"] = true,
+}
+
+local function req(f, ...)
+	-- Make an HTTP request for an API call, normalizing errors and response
+	-- types and handling retries
+	local err = nil
+	for i = 1, 3 do
+		local data, headers = f(...)
+		if headers.error then
+			err = { code = headers.error.errorCode, message = headers.error.name }
+		elseif headers.status ~= 200 then
+			err = { code = headers.status, message = headers.statusDes }
+		else
+			return JSON:decode(data)
+		end
+
+		if not retryable[err.code] then
+			logger:debugf("Un-retryable error: %s", err.code)
+			error(err)
+		elseif i ~= 3 then
+			logger:debugf("Retryable error: %s", err.code)
+			LrTasks.sleep(math.random(i * 1000) / 1000) -- Back off up to i seconds
+		end
 	end
+
+	logger:debugf("Exceeded retries, throwing error: %s", err.code)
+	error(err)
 end
 
 local function shallowCopy(table)
@@ -66,10 +89,7 @@ function INaturalistAPI:apiGet(path)
 	local url = INaturalistAPI.apiBase .. path
 	local headers = self:headers()
 
-	local data, respHeaders = LrHttp.get(url, headers)
-
-	maybeError(respHeaders)
-	return JSON:decode(data)
+	return req(LrHttp.get, url, headers)
 end
 
 function INaturalistAPI:apiPost(path, content, method, content_type)
@@ -91,10 +111,7 @@ function INaturalistAPI:apiPost(path, content, method, content_type)
 		content = ""
 	end
 
-	local data, respHeaders = LrHttp.post(url, content, headers, method)
-
-	maybeError(respHeaders)
-	return JSON:decode(data)
+	return req(LrHttp.post, url, content, headers, method)
 end
 
 function INaturalistAPI:apiPostMultipart(path, content)
@@ -102,10 +119,7 @@ function INaturalistAPI:apiPostMultipart(path, content)
 	local url = INaturalistAPI.apiBase .. path
 	local headers = self:headers()
 
-	local data, respHeaders = LrHttp.postMultipart(url, content, headers)
-
-	maybeError(respHeaders)
-	return JSON:decode(data)
+	return req(LrHttp.postMultipart, url, content, headers)
 end
 
 function INaturalistAPI:apiDelete(path)
@@ -127,11 +141,7 @@ function INaturalistAPI:getAPIToken()
 		{ field = "Accept", value = "application/json" },
 		{ field = "Authorization", value = "Bearer " .. self.accessToken },
 	}
-	local data, respHeaders = LrHttp.get(url, headers)
-
-	maybeError(respHeaders)
-
-	data = JSON:decode(data)
+	local data = req(LrHttp.get, url, headers)
 	self.api_token = data.api_token
 	return data.api_token
 end
@@ -383,11 +393,7 @@ function INaturalistAPI:deletePhoto(id)
 		{ field = "Accept", value = "application/json" },
 		{ field = "Authorization", value = self:jwt() },
 	}
-	local data, respHeaders = LrHttp.post(url, "", headers, "DELETE")
-
-	maybeError(respHeaders)
-
-	return JSON:decode(data)
+	return req(LrHttp.post, url, "", headers, "DELETE")
 end
 
 return INaturalistAPI

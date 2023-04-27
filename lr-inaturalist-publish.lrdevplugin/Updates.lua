@@ -27,9 +27,7 @@ local function getLatestVersion()
 		return
 	end
 
-	local success, release = pcall(function()
-		return JSON:decode(data)
-	end)
+	local success, release = pcall(JSON.decode, JSON, data)
 	if not success then
 		return
 	end

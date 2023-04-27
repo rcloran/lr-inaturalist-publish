@@ -418,9 +418,7 @@ local function uploadPhoto(api, observations, rendition, path, exportSettings)
 end
 
 local function saferDelete(api, photoId)
-	local success, result = LrTasks.pcall(function()
-		api:deletePhoto(photoId)
-	end)
+	local success, result = LrTasks.pcall(api.deletePhoto, api, photoId)
 
 	-- If we get a 404 on delete, that's the state we wanted anyways, so
 	-- treat it as success.
@@ -436,9 +434,7 @@ local function maybeDeleteOld(api, photoId)
 	end
 
 	logger:infof("Deleting photo %s (updated)", photoId)
-	local success, result = LrTasks.pcall(function()
-		saferDelete(api, photoId)
-	end)
+	local success, result = LrTasks.pcall(saferDelete, api, photoId)
 
 	if success then
 		return
