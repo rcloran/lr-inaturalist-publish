@@ -466,7 +466,7 @@ local function sync(functionContext, settings, progress, api, lastSync)
 	matchStats = {}
 
 	if not api then
-		api = INaturalistAPI:new(settings.accessToken)
+		api = INaturalistAPI:new(settings.login)
 	end
 
 	local query = {

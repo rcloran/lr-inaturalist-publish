@@ -1,6 +1,7 @@
 local logger = import("LrLogger")("lr-inaturalist-publish")
 local LrDialogs = import("LrDialogs")
 local LrHttp = import("LrHttp")
+local LrPasswords = import("LrPasswords")
 local LrTasks = import("LrTasks")
 
 local INaturalistAPI = require("INaturalistAPI")
@@ -10,14 +11,8 @@ local sha2 = require("sha2")
 
 local INaturalistUser = {}
 
-function INaturalistUser.clearLoginData(propertyTable)
-	propertyTable.accessToken = nil
-
-	INaturalistUser.verifyLogin(propertyTable)
-end
-
 function INaturalistUser.verifyLogin(propertyTable)
-	if propertyTable.accessToken and string.len(propertyTable.accessToken) > 0 then
+	if propertyTable.login and #propertyTable.login > 0 then
 		propertyTable.accountStatus = "Logged in as " .. propertyTable.login
 		propertyTable.loginButtonTitle = "Log out"
 		propertyTable.loginButtonEnabled = false
@@ -78,9 +73,10 @@ function INaturalistUser.handleAuthRedirect(url)
 		LrTasks.startAsyncTask(function()
 			local accessToken = INaturalistUser.getToken(params["code"], propertyTable.pkceChallenge)
 			propertyTable.pkceChallenge = nil
-			local api = INaturalistAPI:new(accessToken)
-			propertyTable.login = api:getUser().login
-			propertyTable.accessToken = accessToken
+			local api = INaturalistAPI:new(nil, accessToken)
+			local login = api:getUser().login
+			LrPasswords.store(login, accessToken)
+			propertyTable.login = login
 			INaturalistUser.verifyLogin(propertyTable)
 		end)
 	end

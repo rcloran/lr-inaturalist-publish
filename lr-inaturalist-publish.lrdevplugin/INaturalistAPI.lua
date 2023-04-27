@@ -1,5 +1,6 @@
 local logger = import("LrLogger")("lr-inaturalist-publish")
 local LrHttp = import("LrHttp")
+local LrPasswords = import("LrPasswords")
 local LrPathUtils = import("LrPathUtils")
 local LrStringUtils = import("LrStringUtils")
 
@@ -14,9 +15,12 @@ local INaturalistAPI = {
 -- Constructor -- an instance of the API stores the access token locally, and
 -- handles obtaining JWT (tokens for the new API), which are short-lived, as
 -- needed.
-function INaturalistAPI:new(accessToken)
+function INaturalistAPI:new(login, accessToken)
 	local o = {}
 	setmetatable(o, { __index = self })
+	if login and not accessToken then
+		accessToken = LrPasswords.retrieve(login)
+	end
 	o.accessToken = accessToken
 	return o
 end

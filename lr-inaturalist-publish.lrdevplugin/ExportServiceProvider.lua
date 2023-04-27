@@ -17,7 +17,6 @@ local SyncObservations = require("SyncObservations")
 local exportServiceProvider = {
 	supportsIncrementalPublish = "only",
 	exportPresetFields = {
-		{ key = "accessToken", default = "" },
 		{ key = "login", default = "" },
 		{ key = "syncKeywords", default = true },
 		{ key = "syncKeywordsCommon", default = true },
@@ -44,7 +43,7 @@ local exportServiceProvider = {
 }
 
 local function updateCantExportBecause(propertyTable)
-	if propertyTable.accessToken == "" then
+	if propertyTable.login == "" then
 		propertyTable.LR_cantExportBecause = "Not logged in to iNaturalist"
 		return
 	end
@@ -54,7 +53,7 @@ end
 
 -- called when the user picks this service in the publish dialog
 function exportServiceProvider.startDialog(propertyTable)
-	propertyTable:addObserver("accessToken", function()
+	propertyTable:addObserver("login", function()
 		updateCantExportBecause(propertyTable)
 	end)
 	updateCantExportBecause(propertyTable)
@@ -464,7 +463,7 @@ function exportServiceProvider.processRenderedPhotos(_, exportContext)
 	local exportSettings = exportContext.propertyTable
 
 	local observations = {}
-	local api = INaturalistAPI:new(exportSettings.accessToken)
+	local api = INaturalistAPI:new(exportSettings.login)
 	if exportSettings.syncOnPublish then
 		local progress = LrProgressScope({
 			title = "Synchronizing observations from iNaturalist",
@@ -568,7 +567,7 @@ function exportServiceProvider.deletePhotosFromPublishedCollection(
 	local catalog = LrApplication.activeCatalog()
 	local collection = catalog:getPublishedCollectionByLocalIdentifier(localCollectionId)
 
-	local api = INaturalistAPI:new(publishSettings.accessToken)
+	local api = INaturalistAPI:new(publishSettings.login)
 
 	-- Turn photoIds into a set
 	local photos = {}
