@@ -387,9 +387,7 @@ function INaturalistAPI:deletePhoto(id)
 
 	maybeError(respHeaders)
 
-	data = JSON:decode(data)
-	self.api_token = data.api_token
-	return data.api_token
+	return JSON:decode(data)
 end
 
 return INaturalistAPI
