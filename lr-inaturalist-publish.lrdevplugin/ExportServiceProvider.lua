@@ -17,6 +17,7 @@ local SyncObservations = require("SyncObservations")
 local exportServiceProvider = {
 	supportsIncrementalPublish = "only",
 	exportPresetFields = {
+		{ key = "accessToken", default = "" },
 		{ key = "login", default = "" },
 		{ key = "syncKeywords", default = true },
 		{ key = "syncKeywordsCommon", default = true },
