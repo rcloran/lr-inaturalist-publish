@@ -12,9 +12,13 @@ local INaturalistMetadata = require("INaturalistMetadata")
 local SyncObservations = {}
 
 local function commonName(taxon)
-	-- TODO: Find proper translations for names. For now, be English-centric
-	-- because preferred_common_name seems to be inconsistent.
-	return taxon.english_common_name or taxon.preferred_common_name or taxon.name
+	-- preferred_common_name seems to have some caching issues. There are many
+	-- reports in the forums etc of users sporadically having names in Spanish,
+	-- or similar bugs, and I've seen API responses with it in unexpected
+	-- languages. BUT, I'm not sure if what I've seen was with authenticated
+	-- requests or not. Also, let's not build complicated workarounds here for
+	-- iNaturalist infrastructure issues.
+	return taxon.preferred_common_name or taxon.english_common_name or taxon.name
 end
 
 local function observationCommonName(obs)
