@@ -321,12 +321,13 @@ local function setLastSync(publishSettings, lastSync)
 	end, { timeout = 30 })
 end
 
-local function makePhotoSearchQuery(observation, _)
+local function makePhotoSearchQuery(observation)
 	-- The LR data is timezoneless (at least in search).
 	-- I think it's correct to query it without the TZ from iNaturalist,
 	-- since from what I've seen there can be a mismatch in TZ between the
 	-- two (I think iNat respects DST at the location, not sure), but the
 	-- timezoneless timestamp matches.
+	logger:tracef("  Observation timestamp: %s", observation.time_observed_at)
 	local timeObserved = timezoneless(observation.time_observed_at)
 	if timeObserved:sub(-2, -1) == "00" then
 		-- Observations created with the web interface only have minute
@@ -367,6 +368,7 @@ local function filterMatchedPhotos(observation, photos, filterCollection)
 	-- UUID match, return those as the actual matches and forget the time
 	-- matches.
 	if #r > 0 then
+		logger:tracef("  Found %s photos by observation UUID", #r)
 		matchStats["uuid"] = (matchStats["uuid"] or 0) + #r
 		return r, true
 	end
@@ -414,6 +416,7 @@ local function filterMatchedPhotos(observation, photos, filterCollection)
 		end
 	end
 
+	logger:tracef("  Filtered to %s photos by GPS", #r)
 	if #r == 1 then
 		matchStats["time+gps"] = (matchStats["time+gps"] or 0) + 1
 		return r, false
@@ -426,6 +429,8 @@ local function filterMatchedPhotos(observation, photos, filterCollection)
 		photos, r = r, {}
 		matchSoFar = "time+gps"
 	end
+	-- if #r == 0 then ignore what happened with GPS, and continue working on
+	-- what was in the photos table.
 
 	-- We still have too many matches. Maybe we can refine by how much the
 	-- user cropped one in a burst?
@@ -445,6 +450,7 @@ local function filterMatchedPhotos(observation, photos, filterCollection)
 		end
 	end
 
+	logger:tracef("  Filtered to %s photos by crop dimensions", #r)
 	if #r == 1 then
 		matchStats[matchSoFar .. "+crop"] = (matchStats[matchSoFar .. "+crop"] or 0) + 1
 		return r, false
@@ -517,14 +523,17 @@ local function sync(functionContext, settings, progress, api, lastSync)
 			error({ code = "canceled", message = "Canceled by user" })
 		end
 		local observation = observations[i]
+		local observation_url = "https://www.inaturalist.org/observations/" .. observation.id
 
 		local updated = parseISO8601(observation.updated_at)
 		if updated > mostRecentUpdate then
 			mostRecentUpdate = updated
 		end
 
-		local searchDesc = makePhotoSearchQuery(observation, collection)
+		logger:tracef("Finding photos for observation %s", observation_url)
+		local searchDesc = makePhotoSearchQuery(observation)
 		local photos = catalog:findPhotos({ searchDesc = searchDesc })
+		logger:tracef("  Found %s photos by timestamp/UUID search", #photos)
 		local matchedByUUID
 		photos, matchedByUUID = filterMatchedPhotos(observation, photos, settings.syncSearchIn)
 
@@ -537,7 +546,6 @@ local function sync(functionContext, settings, progress, api, lastSync)
 				withPrivateWriteAccessDo(function()
 					setObservationMetadata(observation, photo)
 					photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID, observation.uuid)
-					local observation_url = "https://www.inaturalist.org/observations/" .. observation.id
 					photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationURL, observation_url)
 				end)
 				syncKeywords(photo, kw, settings, keywordCache)
