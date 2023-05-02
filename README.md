@@ -12,17 +12,24 @@ catalog with metadata from iNaturalist.
    macOS: double click the zip file
 
    Windows: right click and select "Extract All..."
-3) Move the lr-inaturalist-publish.lrplugin directory somewhere you would like
-   the plugin to be stored.
+3) Move the `lr-inaturalist-publish.lrplugin` directory somewhere you would like
+   to store the plugin.
 
    On macOS, the standard location for Lightroom Classic plugins is
-   `~/Library/Application Support/Adobe/Lightroom/Modules` (that is, within
-   the `Library` directory inside the user's home directory).
+   `Library/Application Support/Adobe/Lightroom/Modules` within the user's home
+   directory. By default the `Library` folder is hidden in Finder. You can
+   navigate to it by choosing the `Go -> Go to Folder...` menu option in Finder
+   and typing `~/Library`.
 
    On Windows, the standard location for Lightroom Classic plugins is
    `C:\Users\username\AppData\Roaming\Adobe\Lightroom\Modules`
-4) In Lightroom, open the Plug-in Manager (`File` -> `Plug-in Manager`), and
-   add the plugin using the `Add` button near the bottom left of the window.
+
+   If you store the plugin in one of these standard locations, Lightroom will
+   automatically load them at start-up, so you don't need to add them.
+4) If you used one of the standard locations, restart Lightroom. If you chose
+   a different location, then open the Plug-in Manager in Lightroom (`File` ->
+   `Plug-in Manager`), and add the plugin using the `Add` button near the
+   bottom left of the window.
 
 ## Usage
 
@@ -55,7 +62,7 @@ observation, added to the photo.
 
 If you selected the option to update keywords from iNaturalist, keywords will
 be created in a taxonomical hierarchy, and applied to your photo. The default
-is to create keywords using the common name. If you unselect that option the
+is to create keywords using the common name. If you deselect that option the
 scientific name will be used instead. In either case, the alternate will be
 used as a keyword synonym so that you can search by either.
 
