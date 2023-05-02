@@ -613,7 +613,10 @@ function exportServiceProvider.goToPublishedCollection(publishSettings, _)
 	LrHttp.openUrlInBrowser("https://www.inaturalist.org/observations/" .. publishSettings.login)
 end
 
-function exportServiceProvider.didCreateNewPublishService(publishSettings, _)
+function exportServiceProvider.didCreateNewPublishService(publishSettings, info)
+	-- Emulates the setup we have when editing config
+	publishSettings.LR_publishService = info.publishService
+
 	local f = LrView.osFactory()
 	local mainMsg = "This will take some time."
 	if publishSettings.syncOnPublish then
