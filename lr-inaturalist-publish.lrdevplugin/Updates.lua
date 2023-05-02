@@ -135,11 +135,7 @@ local function showUpdateDialog(release, force)
 
 		if LrTasks.execute("tar --help") == 0 then
 			LrFunctionContext.callWithContext("downloadAndInstall", downloadAndInstall, release)
-			LrDialogs.message(
-				"iNaturalist Publish Plugin update installed",
-				"Please restart Lightroom, or reload the plugin (from Plug-in Manager)",
-				"info"
-			)
+			LrDialogs.message("iNaturalist Publish Plugin update installed", "Please restart Lightroom", "info")
 		else
 			-- We need the user to download and extract the zip file
 			LrHttp.openUrlInBrowser(release.assets[1].browser_download_url)
