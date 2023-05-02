@@ -11,7 +11,7 @@ local bind = LrView.bind
 
 local INaturalistAPI = require("INaturalistAPI")
 local INaturalistMetadata = require("INaturalistMetadata")
-local INaturalistUser = require("INaturalistUser")
+local Login = require("Login")
 local SyncObservations = require("SyncObservations")
 
 local exportServiceProvider = {
@@ -59,7 +59,7 @@ function exportServiceProvider.startDialog(propertyTable)
 	end)
 	updateCantExportBecause(propertyTable)
 
-	INaturalistUser.verifyLogin(propertyTable)
+	Login.verifyLogin(propertyTable)
 end
 
 local function getCollectionsForPopup(parent, indent)
@@ -131,7 +131,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 				title = bind("loginButtonTitle"),
 				enabled = bind("loginButtonEnabled"),
 				action = function()
-					INaturalistUser.login(propertyTable)
+					Login.login(propertyTable)
 				end,
 			}),
 		}),
