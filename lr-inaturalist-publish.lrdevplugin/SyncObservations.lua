@@ -8,7 +8,7 @@ local LrProgressScope = import("LrProgressScope")
 
 local DevSettings = require("DevSettings")
 local INaturalistAPI = require("INaturalistAPI")
-local INaturalistMetadata = require("INaturalistMetadata")
+local MetadataConst = require("MetadataConst")
 
 local SyncObservations = {}
 
@@ -99,10 +99,10 @@ local function setObservationMetadata(obs, photo)
 	if not (obs.taxon and obs.identifications and #obs.identifications > 0) then
 		return
 	end
-	photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.CommonName, observationCommonName(obs))
-	photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.Name, observationName(obs))
-	photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.CommonTaxonomy, observationCommonTaxonomy(obs))
-	photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.Taxonomy, observationTaxonomy(obs))
+	photo:setPropertyForPlugin(_PLUGIN, MetadataConst.CommonName, observationCommonName(obs))
+	photo:setPropertyForPlugin(_PLUGIN, MetadataConst.Name, observationName(obs))
+	photo:setPropertyForPlugin(_PLUGIN, MetadataConst.CommonTaxonomy, observationCommonTaxonomy(obs))
+	photo:setPropertyForPlugin(_PLUGIN, MetadataConst.Taxonomy, observationTaxonomy(obs))
 end
 
 local ISO8601Pattern = "(%d+)%-(%d+)%-(%d+)%a(%d+)%:(%d+)%:([%d%.]+)([Z%+%-])(%d?%d?)%:?(%d?%d?)"
@@ -340,7 +340,7 @@ local function makePhotoSearchQuery(observation)
 	local r = {
 		combine = "union",
 		{
-			criteria = "sdktext:" .. _PLUGIN.id .. "." .. INaturalistMetadata.ObservationUUID,
+			criteria = "sdktext:" .. _PLUGIN.id .. "." .. MetadataConst.ObservationUUID,
 			operation = "==",
 			value = observation.uuid,
 		},
@@ -360,7 +360,7 @@ local syncInProgress = false
 local function filterMatchedPhotos(observation, photos, filterCollection)
 	local r = {}
 	for _, photo in pairs(photos) do
-		if photo:getPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID) == observation.uuid then
+		if photo:getPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID) == observation.uuid then
 			r[#r + 1] = photo
 		end
 	end
@@ -552,8 +552,8 @@ local function sync(functionContext, settings, progress, api, lastSync)
 				matchStats["photos"] = (matchStats["photos"] or 0) + 1
 				withPrivateWriteAccessDo(function()
 					setObservationMetadata(observation, photo)
-					photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID, observation.uuid)
-					photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationURL, observation_url)
+					photo:setPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID, observation.uuid)
+					photo:setPropertyForPlugin(_PLUGIN, MetadataConst.ObservationURL, observation_url)
 				end)
 				syncKeywords(photo, kw, settings, keywordCache)
 			end

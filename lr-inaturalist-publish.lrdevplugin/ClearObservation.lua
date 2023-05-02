@@ -1,7 +1,7 @@
 local LrApplication = import("LrApplication")
 local LrDialogs = import("LrDialogs")
 
-local INaturalistMetadata = require("INaturalistMetadata")
+local MetadataConst = require("MetadataConst")
 
 -- Clear the observation UUID field on selected photos
 local function clearObservation()
@@ -19,8 +19,8 @@ local function clearObservation()
 
 	catalog:withWriteAccessDo("Clear observation", function(_)
 		for _, photo in pairs(photos) do
-			photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID, nil)
-			photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationURL, nil)
+			photo:setPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID, nil)
+			photo:setPropertyForPlugin(_PLUGIN, MetadataConst.ObservationURL, nil)
 		end
 		local msg = "Removed observation metadata from %s photos"
 		if #photos == 1 then

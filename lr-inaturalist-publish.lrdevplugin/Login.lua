@@ -9,9 +9,9 @@ local JSON = require("JSON")
 local Random = require("Random")
 local sha2 = require("sha2")
 
-local INaturalistUser = {}
+local Login = {}
 
-function INaturalistUser.verifyLogin(propertyTable)
+function Login.verifyLogin(propertyTable)
 	if propertyTable.login and #propertyTable.login > 0 then
 		propertyTable.accountStatus = "Logged in as " .. propertyTable.login
 		propertyTable.loginButtonTitle = "Log out"
@@ -36,8 +36,8 @@ local function generateSecret()
 	return base64urlencode(Random.rand256())
 end
 
-function INaturalistUser.login(propertyTable)
-	logger:trace("INaturalistUser.login()")
+function Login.login(propertyTable)
+	logger:trace("Login.login()")
 	local baseUrl = "https://www.inaturalist.org/oauth/authorize"
 	local challenge = generateSecret()
 	local code_challenge = base64urlencode(sha2.hex_to_bin(sha2.sha256(challenge)))
@@ -50,11 +50,11 @@ function INaturalistUser.login(propertyTable)
 		INaturalistAPI.urlencode(INaturalistAPI.oauthRedirect)
 	)
 	propertyTable.pkceChallenge = challenge
-	INaturalistUser.inProgressLogin = propertyTable
+	Login.inProgressLogin = propertyTable
 	LrHttp.openUrlInBrowser(url)
 end
 
-function INaturalistUser.handleAuthRedirect(url)
+function Login.handleAuthRedirect(url)
 	logger:trace("handleAuthRedirect()")
 	local params = {}
 	for k, v in url:gmatch("([^&=?]-)=([^&=?]+)") do
@@ -62,7 +62,7 @@ function INaturalistUser.handleAuthRedirect(url)
 	end
 
 	if params["code"] then
-		local propertyTable = INaturalistUser.inProgressLogin
+		local propertyTable = Login.inProgressLogin
 		if not (propertyTable and propertyTable.pkceChallenge) then
 			LrDialogs.message(
 				"Unexpected iNaturalist login received",
@@ -71,19 +71,19 @@ function INaturalistUser.handleAuthRedirect(url)
 			return
 		end
 		LrTasks.startAsyncTask(function()
-			local accessToken = INaturalistUser.getToken(params["code"], propertyTable.pkceChallenge)
+			local accessToken = Login.getToken(params["code"], propertyTable.pkceChallenge)
 			propertyTable.pkceChallenge = nil
 			local api = INaturalistAPI:new(nil, accessToken)
 			local login = api:getUser().login
 			LrPasswords.store(login, accessToken)
 			propertyTable.login = login
-			INaturalistUser.verifyLogin(propertyTable)
+			Login.verifyLogin(propertyTable)
 		end)
 	end
 end
 
 -- Obtain an OAuth access token (second stage of OAuth)
-function INaturalistUser.getToken(code, challenge)
+function Login.getToken(code, challenge)
 	logger:trace("getToken()")
 	assert(type(code) == "string")
 	assert(type(challenge) == "string")
@@ -107,4 +107,4 @@ function INaturalistUser.getToken(code, challenge)
 	return data.access_token
 end
 
-return INaturalistUser
+return Login

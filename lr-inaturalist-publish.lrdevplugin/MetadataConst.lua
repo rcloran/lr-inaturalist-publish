@@ -1,4 +1,6 @@
-local INaturalistMetadata = {
+-- Constants used as metadata IDs
+
+local MetadataConst = {
 	CommonName = "iNaturalistCommonName",
 	Name = "iNaturalistName",
 	CommonTaxonomy = "iNaturalistCommonTaxonomy",
@@ -8,4 +10,4 @@ local INaturalistMetadata = {
 	ObservationURL = "iNaturalistObservationURL",
 }
 
-return INaturalistMetadata
+return MetadataConst

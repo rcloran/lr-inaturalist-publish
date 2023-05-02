@@ -1,9 +1,9 @@
-local INaturalistMetadata = require("INaturalistMetadata")
+local MetadataConst = require("MetadataConst")
 
 return {
 	metadataFieldsForPhotos = {
 		{
-			id = INaturalistMetadata.ObservationUUID,
+			id = MetadataConst.ObservationUUID,
 			title = "Observation UUID",
 			dataType = "string",
 			readOnly = true,
@@ -12,7 +12,7 @@ return {
 			version = 1,
 		},
 		{
-			id = INaturalistMetadata.ObservationURL,
+			id = MetadataConst.ObservationURL,
 			title = "Observation URL",
 			dataType = "url",
 			readOnly = true,
@@ -20,7 +20,7 @@ return {
 			version = 1,
 		},
 		{
-			id = INaturalistMetadata.CommonName,
+			id = MetadataConst.CommonName,
 			title = "Common name",
 			dataType = "string",
 			readOnly = true,
@@ -28,7 +28,7 @@ return {
 			browsable = false,
 		},
 		{
-			id = INaturalistMetadata.Name,
+			id = MetadataConst.Name,
 			title = "Name",
 			dataType = "string",
 			readOnly = true,
@@ -36,7 +36,7 @@ return {
 			browsable = false,
 		},
 		{
-			id = INaturalistMetadata.CommonTaxonomy,
+			id = MetadataConst.CommonTaxonomy,
 			title = "Common name taxonomy",
 			dataType = "string",
 			readOnly = true,
@@ -44,7 +44,7 @@ return {
 			browsable = false,
 		},
 		{
-			id = INaturalistMetadata.Taxonomy,
+			id = MetadataConst.Taxonomy,
 			title = "Taxonomy",
 			dataType = "string",
 			readOnly = true,
