@@ -235,7 +235,7 @@ end
 -- into one table.
 -- Overrides per_page, order_by, order, id_above, id_below in the search;
 -- results are always ordered descending by id.
-function INaturalistAPI:listObservationsWithPagination(search, progress)
+function INaturalistAPI:listObservationsWithPagination(search, progress, limit)
 	local results, resultsRemain = {}, true
 
 	search = shallowCopy(search)
@@ -245,7 +245,7 @@ function INaturalistAPI:listObservationsWithPagination(search, progress)
 	search.id_above = nil
 	search.id_below = nil
 
-	while resultsRemain do
+	while resultsRemain and (not limit or #results < limit) do
 		if progress:isCanceled() then
 			error({ code = "canceled", message = "Canceled by user" })
 		end

@@ -6,6 +6,7 @@ local LrFunctionContext = import("LrFunctionContext")
 local LrPasswords = import("LrPasswords")
 local LrProgressScope = import("LrProgressScope")
 
+local DevSettings = require("DevSettings")
 local INaturalistAPI = require("INaturalistAPI")
 local INaturalistMetadata = require("INaturalistMetadata")
 
@@ -505,7 +506,8 @@ local function sync(functionContext, settings, progress, api, lastSync)
 		-- caption seems to do what I actually want.
 		progress:setCaption(caption)
 	end
-	local observations = api:listObservationsWithPagination(query, dlProgress)
+
+	local observations = api:listObservationsWithPagination(query, dlProgress, DevSettings.syncLimit)
 
 	-- Now apply downloaded data to the catalog
 	local syncProgress = LrProgressScope({
