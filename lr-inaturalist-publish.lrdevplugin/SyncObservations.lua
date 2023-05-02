@@ -387,16 +387,19 @@ local function filterMatchedPhotos(observation, photos, filterCollection)
 		end
 		photos, r = r, {}
 	end
+	logger:tracef("  Filtered to %s photos by filter collection", #photos)
 
 	-- We already matched time in the search, don't need to double check it
-	-- here.
-	if #photos == 1 then
+	-- here. But we should only return if we know we can't confirm based on
+	-- GPS.
+	local observationHasGPS = observation.geojson and observation.geojson.type == "Point"
+	if #photos == 1 and not (observationHasGPS and photos[1]:getRawMetadata("gps")) then
 		matchStats["time"] = (matchStats["time"] or 0) + 1
 		return photos, false
 	end
 
 	-- Maybe we can refine based on GPS data?
-	if observation.geojson and observation.geojson.type == "Point" then
+	if observationHasGPS then
 		local obsGPS = observation.geojson.coordinates
 
 		for _, photo in pairs(photos) do
