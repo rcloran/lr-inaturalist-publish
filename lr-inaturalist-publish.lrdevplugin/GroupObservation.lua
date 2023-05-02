@@ -1,7 +1,7 @@
 local LrApplication = import("LrApplication")
 local LrDialogs = import("LrDialogs")
 
-local INaturalistMetadata = require("INaturalistMetadata")
+local MetadataConst = require("MetadataConst")
 local Random = require("Random")
 
 -- Group photos into an observation. That is, assign observation UUIDs.
@@ -16,8 +16,8 @@ local function groupObservation()
 
 	local uuid, url = nil, nil
 	for _, photo in pairs(photos) do
-		local thisUUID = photo:getPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID)
-		local thisURL = photo:getPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationURL)
+		local thisUUID = photo:getPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID)
+		local thisURL = photo:getPropertyForPlugin(_PLUGIN, MetadataConst.ObservationURL)
 		if thisUUID and #thisUUID > 0 then
 			if uuid ~= nil and uuid ~= thisUUID then
 				LrDialogs.message(
@@ -39,8 +39,8 @@ local function groupObservation()
 
 	catalog:withWriteAccessDo("Group into observation", function(_)
 		for _, photo in pairs(photos) do
-			photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID, uuid)
-			photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationURL, url)
+			photo:setPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID, uuid)
+			photo:setPropertyForPlugin(_PLUGIN, MetadataConst.ObservationURL, url)
 		end
 		local msg = "Grouped %s photos into 1 observation"
 		LrDialogs.showBezel(string.format(msg, #photos))

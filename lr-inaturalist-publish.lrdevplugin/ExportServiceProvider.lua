@@ -10,8 +10,8 @@ local LrView = import("LrView")
 local bind = LrView.bind
 
 local INaturalistAPI = require("INaturalistAPI")
-local INaturalistMetadata = require("INaturalistMetadata")
 local Login = require("Login")
+local MetadataConst = require("MetadataConst")
 local SyncObservations = require("SyncObservations")
 
 local exportServiceProvider = {
@@ -377,7 +377,7 @@ local function makeObservationObj(photo, exportSettings)
 		end
 	end
 
-	local observationUUID = photo:getPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID)
+	local observationUUID = photo:getPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID)
 	if observationUUID then
 		observation.uuid = observationUUID
 	end
@@ -386,7 +386,7 @@ local function makeObservationObj(photo, exportSettings)
 end
 
 local function uploadPhoto(api, observations, rendition, path, exportSettings)
-	local localObservationUUID = rendition.photo:getPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID)
+	local localObservationUUID = rendition.photo:getPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID)
 
 	if localObservationUUID and observations[localObservationUUID] then
 		-- There's already an observation that was created this session
@@ -502,9 +502,9 @@ function exportServiceProvider.processRenderedPhotos(_, exportContext)
 
 				local lrPhoto = rendition.photo
 				lrPhoto.catalog:withPrivateWriteAccessDo(function()
-					lrPhoto:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID, observation.uuid)
+					lrPhoto:setPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID, observation.uuid)
 					local observation_url = "https://www.inaturalist.org/observations/" .. observation.id
-					lrPhoto:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationURL, observation_url)
+					lrPhoto:setPropertyForPlugin(_PLUGIN, MetadataConst.ObservationURL, observation_url)
 				end)
 			end
 		end
@@ -537,7 +537,7 @@ local function getObservationsForPhotos(api, collection, photos)
 	-- Retrieve all the observations (1 by 1!? TODO: Batch.)
 	local observations = {}
 	for _, photo in pairs(photos) do
-		local uuid = photo:getPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID)
+		local uuid = photo:getPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID)
 		if uuid and not observations[uuid] then
 			local listedObservations = api:listObservations({ uuid = uuid })
 			if #listedObservations == 1 then
