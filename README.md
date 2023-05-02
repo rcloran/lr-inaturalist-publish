@@ -25,7 +25,7 @@ catalog with metadata from iNaturalist.
    `C:\Users\username\AppData\Roaming\Adobe\Lightroom\Modules`
 
    If you store the plugin in one of these standard locations, Lightroom will
-   automatically load them at start-up, so you don't need to add them.
+   automatically load it at start-up, so you don't need to add it.
 4) If you used one of the standard locations, restart Lightroom. If you chose
    a different location, then open the Plug-in Manager in Lightroom (`File` ->
    `Plug-in Manager`), and add the plugin using the `Add` button near the
