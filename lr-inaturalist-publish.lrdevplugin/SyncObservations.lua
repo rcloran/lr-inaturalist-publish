@@ -543,11 +543,13 @@ local function sync(functionContext, settings, progress, api, lastSync)
 		photos, matchedByUUID = filterMatchedPhotos(observation, photos, settings.syncSearchIn)
 
 		if #photos == 1 or matchedByUUID then
+			matchStats["observations"] = (matchStats["observations"] or 0) + 1
 			local kw = nil
 			if settings.syncKeywords then
 				kw = makeKeywordPath(observation, settings.syncKeywordsCommon)
 			end
 			for _, photo in pairs(photos) do
+				matchStats["photos"] = (matchStats["photos"] or 0) + 1
 				withPrivateWriteAccessDo(function()
 					setObservationMetadata(observation, photo)
 					photo:setPropertyForPlugin(_PLUGIN, INaturalistMetadata.ObservationUUID, observation.uuid)
@@ -556,6 +558,7 @@ local function sync(functionContext, settings, progress, api, lastSync)
 				syncKeywords(photo, kw, settings, keywordCache)
 			end
 			if #photos == 1 and #observation.photos == 1 and not collectionPhotos[photos[1].localIdentifier] then
+				matchStats["collection"] = (matchStats["collection"] or 0) + 1
 				local oP = observation.photos[1]
 				withWriteAccessDo("Add photo to observations", function()
 					collection:addPhotoByRemoteId(
@@ -585,7 +588,7 @@ local function sync(functionContext, settings, progress, api, lastSync)
 
 	syncProgress:done()
 
-	return observations
+	return observations, matchStats
 end
 
 function SyncObservations.sync(settings, progress, api)
@@ -616,9 +619,22 @@ function SyncObservations.fullSync(settings, api)
 		pluginName = "iNaturalist Publish Service Provider",
 		func = function(context, progress)
 			setLastSync(settings, nil) -- Inside transaction, so that if it fails...
-			observations = sync(context, settings, progress, api, nil)
+			observations, matchStats = sync(context, settings, progress, api, nil)
 		end,
 	})
+
+	if matchStats["photos"] then
+		-- We had at least one match!
+		local msg = string.format(
+			"%s observations were matched to %s photos, and metadata was set.\n\n"
+				.. "%s photos were matched to a specific photo in an observation, and were added to the Observations collection",
+			matchStats["observations"],
+			matchStats["photos"],
+			matchStats["collection"] or 0
+		)
+		LrDialogs.message("Synchronization complete", msg, "info")
+	end
+
 	return observations
 end
 
