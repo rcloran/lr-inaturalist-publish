@@ -19,6 +19,7 @@ local Updates = {
 local function getLatestVersion()
 	local url = Updates.baseUrl .. "repos/" .. Updates.repo .. "/releases/latest"
 	local headers = {
+		{ field = "User-Agent", value = Updates.repo .. "/" .. Updates.version() },
 		{ field = "X-GitHub-Api-Version", value = "2022-11-28" },
 	}
 	local data, respHeaders = LrHttp.get(url, headers)
@@ -143,6 +144,11 @@ local function showUpdateDialog(release, force)
 	end
 end
 
+function Updates.version()
+	local v = Info.VERSION
+	return string.format("%s.%s.%s", v.major, v.minor, v.revision)
+end
+
 function Updates.check(force)
 	-- Returns the current version as a string if no update is available, or
 	-- nil if an update dialog was shown.
@@ -154,8 +160,8 @@ function Updates.check(force)
 	if not latest then
 		return
 	end
-	local v = Info.VERSION
-	local current = string.format("v%s.%s.%s", v.major, v.minor, v.revision)
+
+	local current = "v" .. Updates.version()
 
 	if current ~= latest.tag_name then
 		showUpdateDialog(latest, force)
