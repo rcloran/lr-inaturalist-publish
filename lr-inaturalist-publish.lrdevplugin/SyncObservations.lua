@@ -105,12 +105,12 @@ local function setObservationMetadata(obs, photo)
 	photo:setPropertyForPlugin(_PLUGIN, MetadataConst.Taxonomy, observationTaxonomy(obs))
 end
 
-local ISO8601Pattern = "(%d+)%-(%d+)%-(%d+)%a(%d+)%:(%d+)%:([%d%.]+)([Z%+%-])(%d?%d?)%:?(%d?%d?)"
+local ISO8601Pattern = "(%d+)%-(%d+)%-(%d+)%a(%d+)%:(%d+)%:([%d%.]+)([Z%+%-]?)(%d?%d?)%:?(%d?%d?)"
 
 local function parseISO8601(s)
 	local year, month, day, hour, minute, second, tzsign, tzhour, tzminute = s:match(ISO8601Pattern)
 	local tz = 0
-	if tzsign ~= "Z" then
+	if tzsign and tzsign ~= "Z" then
 		tz = ((tzhour * 60) + tzminute) * 60
 		if tzsign == "-" then
 			tz = tz * -1
@@ -322,15 +322,26 @@ local function setLastSync(publishSettings, lastSync)
 	end, { timeout = 30 })
 end
 
+local function observationTime(observation)
+	local t = observation.time_observed_at
+	if t then
+		return timezoneless(t)
+	end
+
+	-- Some (older) observations don't have a time_observed_at, and are only
+	-- day resolution.
+	return observation.observed_on_details.date
+end
+
 local function makePhotoSearchQuery(observation)
 	-- The LR data is timezoneless (at least in search).
 	-- I think it's correct to query it without the TZ from iNaturalist,
 	-- since from what I've seen there can be a mismatch in TZ between the
 	-- two (I think iNat respects DST at the location, not sure), but the
 	-- timezoneless timestamp matches.
-	logger:tracef("  Observation timestamp: %s", observation.time_observed_at)
-	local timeObserved = timezoneless(observation.time_observed_at)
-	if timeObserved:sub(-2, -1) == "00" then
+	local timeObserved = observationTime(observation)
+	logger:tracef("  Observation timestamp: %s", timeObserved)
+	if #timeObserved == 19 and timeObserved:sub(-2, -1) == "00" then
 		-- Observations created with the web interface only have minute
 		-- granulatiry. Fortunately the LR date search uses a prefix
 		-- match (compare a search for "2023-04-01T14:1" with
