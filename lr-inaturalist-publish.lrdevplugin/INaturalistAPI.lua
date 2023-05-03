@@ -6,11 +6,13 @@ local LrStringUtils = import("LrStringUtils")
 local LrTasks = import("LrTasks")
 
 local JSON = require("JSON")
+local Updates = require("Updates")
 
 local INaturalistAPI = {
 	clientId = "abue3CpJkLe1adPWFNFzrCj_riap_diH0bpGGq2HYIE",
 	oauthRedirect = "lightroom://net.rcloran.lr-inaturalist-publish/authorization-redirect",
 	apiBase = "https://api.inaturalist.org/v1/",
+	userAgent = "lr-inaturalist-publish/" .. Updates.version(),
 }
 
 -- Constructor -- an instance of the API stores the access token locally, and
@@ -162,6 +164,7 @@ function INaturalistAPI:headers()
 	return {
 		{ field = "Accept", value = "application/json" },
 		{ field = "Authorization", value = string.format("JWT %s", jwt) },
+		{ field = "User-Agent", value = INaturalistAPI.userAgent },
 	}
 end
 
