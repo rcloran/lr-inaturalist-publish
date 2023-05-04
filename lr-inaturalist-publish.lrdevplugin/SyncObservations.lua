@@ -3,7 +3,6 @@ local LrApplication = import("LrApplication")
 local LrDialogs = import("LrDialogs")
 local LrDate = import("LrDate")
 local LrFunctionContext = import("LrFunctionContext")
-local LrPasswords = import("LrPasswords")
 local LrProgressScope = import("LrProgressScope")
 
 local DevSettings = require("DevSettings")
@@ -493,12 +492,6 @@ local function sync(functionContext, settings, progress, api, lastSync)
 	local collection = getCollection(settings)
 
 	matchStats = {}
-
-	if settings.accessToken and #settings.accessToken > 0 then
-		logger:debug("Migrating access token...")
-		LrPasswords.store(settings.login, settings.accessToken)
-		settings.accessToken = ""
-	end
 
 	if not api then
 		api = INaturalistAPI:new(settings.login)
