@@ -456,6 +456,9 @@ local function filterMatchedPhotos(observation, photos, filterCollection)
 			local obsDims = obsPhoto.photo.original_dimensions
 			if
 				not foundOneObsPhoto
+				and obsDims
+				and obsDims.width
+				and obsDims.height
 				and math.abs(obsDims.width - photoDims.width) < 2
 				and math.abs(obsDims.height - photoDims.height) < 2
 			then
