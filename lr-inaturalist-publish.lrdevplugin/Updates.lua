@@ -33,7 +33,7 @@ local function getLatestVersion()
 		return
 	end
 
-	logger:tracef("Found update: %s", release.tag_name)
+	logger:tracef("Found latest release: %s", release.tag_name)
 	return release
 end
 
@@ -141,6 +141,8 @@ local function showUpdateDialog(release, force)
 			-- We need the user to download and extract the zip file
 			LrHttp.openUrlInBrowser(release.assets[1].browser_download_url)
 		end
+	else
+		logger:tracef("Update dialog response: %s", toDo)
 	end
 end
 
@@ -167,6 +169,7 @@ function Updates.check(force)
 	end
 
 	if current ~= latest.tag_name then
+		logger:tracef("Offering update from %s to %s", current, latest.tag_name)
 		showUpdateDialog(latest, force)
 		return
 	end
