@@ -38,22 +38,11 @@ local exportServiceProvider = {
 	titleForGoToPublishedCollection = "Go to observations in iNaturalist",
 }
 
-local function updateCantExportBecause(propertyTable)
-	if propertyTable.login == "" then
-		propertyTable.LR_cantExportBecause = "Not logged in to iNaturalist"
-		return
-	end
-
-	propertyTable.LR_cantExportBecause = nil
-end
-
 -- called when the user picks this service in the publish dialog
 function exportServiceProvider.startDialog(propertyTable)
 	propertyTable:addObserver("login", function()
-		updateCantExportBecause(propertyTable)
+		Login.verifyLogin(propertyTable)
 	end)
-	updateCantExportBecause(propertyTable)
-
 	Login.verifyLogin(propertyTable)
 end
 

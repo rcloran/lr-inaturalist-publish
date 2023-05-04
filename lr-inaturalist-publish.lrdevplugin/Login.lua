@@ -15,12 +15,11 @@ function Login.verifyLogin(propertyTable)
 	if propertyTable.login and #propertyTable.login > 0 then
 		propertyTable.accountStatus = "Logged in as " .. propertyTable.login
 		propertyTable.loginButtonTitle = "Log out"
-		propertyTable.loginButtonEnabled = false
+		propertyTable.LR_cantExportBecause = nil
 	else
 		propertyTable.accountStatus = "Not logged in"
 		propertyTable.loginButtonTitle = "Log in"
-		propertyTable.loginButtonEnabled = true
-		propertyTable.api = nil
+		propertyTable.LR_cantExportBecause = "Not logged in to iNaturalist"
 	end
 end
 
@@ -38,6 +37,16 @@ end
 
 function Login.login(propertyTable)
 	logger:trace("Login.login()")
+
+	-- The same button acts as the Log out button. If already logged in, then
+	-- log out instead.
+	if propertyTable.login and #propertyTable.login > 0 then
+		logger:debugf("Logging out: %s", propertyTable.login)
+		LrPasswords.store(propertyTable.login, "")
+		propertyTable.login = ""
+		return
+	end
+
 	local baseUrl = "https://www.inaturalist.org/oauth/authorize"
 	local challenge = generateSecret()
 	local code_challenge = base64urlencode(sha2.hex_to_bin(sha2.sha256(challenge)))
@@ -77,7 +86,6 @@ function Login.handleAuthRedirect(url)
 			local login = api:getUser().login
 			LrPasswords.store(login, accessToken)
 			propertyTable.login = login
-			Login.verifyLogin(propertyTable)
 		end)
 	end
 end
