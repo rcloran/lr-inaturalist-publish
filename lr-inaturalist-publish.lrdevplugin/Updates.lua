@@ -152,6 +152,11 @@ end
 function Updates.check(force)
 	-- Returns the current version as a string if no update is available, or
 	-- nil if an update dialog was shown.
+
+	-- Always log the current version
+	local current = "v" .. Updates.version()
+	logger:debugf("Running %s", current)
+
 	if not force and not prefs.checkForUpdates then
 		return
 	end
@@ -160,8 +165,6 @@ function Updates.check(force)
 	if not latest then
 		return
 	end
-
-	local current = "v" .. Updates.version()
 
 	if current ~= latest.tag_name then
 		showUpdateDialog(latest, force)
