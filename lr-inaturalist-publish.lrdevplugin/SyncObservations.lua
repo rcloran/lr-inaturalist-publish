@@ -329,7 +329,12 @@ local function observationTime(observation)
 
 	-- Some (older) observations don't have a time_observed_at, and are only
 	-- day resolution.
-	return observation.observed_on_details.date
+	if observation.observed_on_details then
+		return observation.observed_on_details.date
+	end
+
+	-- Some observations have no observation time at all.
+	return nil
 end
 
 local function makePhotoSearchQuery(observation)
@@ -340,7 +345,7 @@ local function makePhotoSearchQuery(observation)
 	-- timezoneless timestamp matches.
 	local timeObserved = observationTime(observation)
 	logger:tracef("  Observation timestamp: %s", timeObserved)
-	if #timeObserved == 19 and timeObserved:sub(-2, -1) == "00" then
+	if timeObserved and #timeObserved == 19 and timeObserved:sub(-2, -1) == "00" then
 		-- Observations created with the web interface only have minute
 		-- granulatiry. Fortunately the LR date search uses a prefix
 		-- match (compare a search for "2023-04-01T14:1" with
@@ -354,12 +359,15 @@ local function makePhotoSearchQuery(observation)
 			operation = "==",
 			value = observation.uuid,
 		},
-		{
+	}
+
+	if timeObserved then
+		r[#r + 1] = {
 			criteria = "captureTime",
 			operation = "==",
 			value = timeObserved,
-		},
-	}
+		}
+	end
 
 	return r
 end
