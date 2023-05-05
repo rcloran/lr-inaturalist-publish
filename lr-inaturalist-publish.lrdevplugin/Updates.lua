@@ -157,7 +157,7 @@ function Updates.check(force)
 
 	-- Always log the current version
 	local current = "v" .. Updates.version()
-	logger:debugf("Running %s", current)
+	logger:debugf("Running %s", Info.VERSION.display or current)
 
 	if not force and not prefs.checkForUpdates then
 		return
