@@ -143,18 +143,11 @@ function Upload.processRenderedPhotos(_, exportContext)
 		local progress = LrProgressScope({
 			title = "Synchronizing observations from iNaturalist",
 		})
-		local success, obsList = LrTasks.pcall(SyncObservations.sync, exportSettings, progress, api)
+		local success, err = LrTasks.pcall(SyncObservations.sync, exportSettings, progress, api)
 		if not success then
 			-- Don't block publish based on sync errors (which could
 			-- just be a sync-in-progress)
-			logger:error("Sync error during publish:", obsList)
-			obsList = {}
-		end
-
-		-- This might save some POSTs to unnecessarily update existing
-		-- observations.
-		for _, o in ipairs(obsList) do
-			observations[o.uuid] = o.id
+			logger:error("Sync error during publish:", err)
 		end
 		progress:done()
 	end

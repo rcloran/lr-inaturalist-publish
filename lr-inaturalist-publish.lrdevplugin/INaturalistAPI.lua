@@ -234,12 +234,14 @@ function INaturalistAPI:listObservations(search)
 	local observation = self:apiGet("observations?" .. qs)
 	return observation.results
 end
--- Like listObservations, but deals with pagination and compiles all results
--- into one table.
+-- Like listObservations, but deals with pagination and returns an iterator to
+-- get observations one by one. The iterator can't be used with `for ... in`
+-- syntax because you can't yield in metamethod calls in Lightroom).
 -- Overrides per_page, order_by, order, id_above, id_below in the search;
 -- results are always ordered descending by id.
-function INaturalistAPI:listObservationsWithPagination(search, progress, limit)
-	local results, resultsRemain = {}, true
+function INaturalistAPI:listObservationsWithPagination(search, limit)
+	local resultsRemain, resultsRetrieved = true, 0
+	local results
 
 	search = shallowCopy(search)
 	search.per_page = 100
@@ -248,34 +250,32 @@ function INaturalistAPI:listObservationsWithPagination(search, progress, limit)
 	search.id_above = nil
 	search.id_below = nil
 
-	while resultsRemain and (not limit or #results < limit) do
-		if progress:isCanceled() then
-			error({ code = "canceled", message = "Canceled by user" })
-		end
-
+	local function fetch()
 		local qs = INaturalistAPI.formEncode(search)
-		local newResults = self:apiGet("observations?" .. qs)
-		-- total_results keeps changing on us because id_below.
-		local totalResults = newResults.total_results + #results
-		for i = 1, #newResults.results do
-			results[#results + 1] = newResults.results[i]
-		end
-		resultsRemain = #newResults.results >= newResults.per_page
+		results = self:apiGet("observations?" .. qs)
+		resultsRemain = #results.results >= results.per_page
+		resultsRetrieved = resultsRetrieved + #results.results
 
-		if progress then
-			progress:setPortionComplete(#results / totalResults)
-			progress:setCaption("Downloading observations (" .. #results .. "/" .. totalResults .. ")")
-		end
-
-		if #newResults.results > 0 then
-			search.id_below = newResults.results[#newResults.results].id
+		if #results.results > 0 then
+			search.id_below = results.results[#results.results].id
 		end
 	end
 
-	if progress then
-		progress:done()
+	local iter = function()
+		if (#results.results == 0) and resultsRemain and not (limit and resultsRetrieved >= limit) then
+			fetch()
+		end
+
+		if #results.results == 0 then
+			return
+		end
+
+		return table.remove(results.results, 1)
 	end
-	return results
+
+	fetch()
+
+	return iter, results.total_results
 end
 -- POST /observations -- Observation Create
 function INaturalistAPI:createObservation(observation)

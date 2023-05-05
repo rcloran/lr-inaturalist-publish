@@ -3,7 +3,6 @@ local LrApplication = import("LrApplication")
 local LrDialogs = import("LrDialogs")
 local LrDate = import("LrDate")
 local LrFunctionContext = import("LrFunctionContext")
-local LrProgressScope = import("LrProgressScope")
 
 local DevSettings = require("DevSettings")
 local INaturalistAPI = require("INaturalistAPI")
@@ -510,39 +509,29 @@ local function sync(functionContext, settings, progress, api, lastSync)
 		updated_since = toISO8601(lastSync),
 	}
 
-	local dlProgress = LrProgressScope({
-		caption = "Downloading observations",
-		parent = progress,
-		parentEndRange = 0.5,
-	})
-	dlProgress.setCaption = function(_, caption)
-		-- I don't understand the API docs on how captions for child
-		-- scopes are supposed to work. Setting the parent scope's
-		-- caption seems to do what I actually want.
-		progress:setCaption(caption)
-	end
-
-	local observations = api:listObservationsWithPagination(query, dlProgress, DevSettings.syncLimit)
+	progress:setCaption("Downloading observations...")
+	local observationIter, totalResults = api:listObservationsWithPagination(query, DevSettings.syncLimit)
 
 	-- Now apply downloaded data to the catalog
-	local syncProgress = LrProgressScope({
-		caption = "Setting observation data",
-		parent = progress,
-		parentEndRange = 1,
-	})
 	local mostRecentUpdate = 0
 	local collectionPhotos = {}
 	for _, photo in pairs(collection:getPhotos()) do
 		collectionPhotos[photo.localIdentifier] = true
 	end
 	local keywordCache = {}
-	for i = 1, #observations do
-		if syncProgress:isCanceled() then
-			-- Lightroom seems to not present dialogs if you give a table as error,
-			-- which is nice in this case.
+	local i = 0
+	while true do
+		local observation = observationIter()
+		if not observation then
+			break
+		end
+		i = i + 1
+
+		if progress:isCanceled() then
+			-- Lightroom seems to not present dialogs if you give a table as
+			-- error, which is nice in this case.
 			error({ code = "canceled", message = "Canceled by user" })
 		end
-		local observation = observations[i]
 		local observation_url = "https://www.inaturalist.org/observations/" .. observation.id
 
 		local updated = parseISO8601(observation.updated_at)
@@ -586,9 +575,9 @@ local function sync(functionContext, settings, progress, api, lastSync)
 			end
 		end
 
-		syncProgress:setPortionComplete(i / #observations)
 		if i % 3 == 0 then
-			progress:setCaption("Updating photos from observation data (" .. i .. "/" .. #observations .. ")")
+			progress:setPortionComplete(i / totalResults)
+			progress:setCaption(string.format("Updating photos from observation data (%s/%s)", i, totalResults))
 		end
 	end
 
@@ -597,13 +586,11 @@ local function sync(functionContext, settings, progress, api, lastSync)
 		logger:debug("", k, v)
 	end
 
-	if #observations > 0 then
+	if i > 0 then
 		setLastSync(settings, mostRecentUpdate)
 	end
 
-	syncProgress:done()
-
-	return observations, matchStats
+	progress:done()
 end
 
 function SyncObservations.sync(settings, progress, api)
@@ -622,19 +609,18 @@ function SyncObservations.sync(settings, progress, api)
 			})
 		end
 
-		return sync(context, settings, progress, api, lastSync)
+		sync(context, settings, progress, api, lastSync)
 	end)
 end
 
 function SyncObservations.fullSync(settings, api)
 	local catalog = LrApplication.activeCatalog()
-	local observations = {}
 	catalog:withProlongedWriteAccessDo({
 		title = "Synchronizing from iNaturalist",
 		pluginName = "iNaturalist Publish Service Provider",
 		func = function(context, progress)
 			setLastSync(settings, nil) -- Inside transaction, so that if it fails...
-			observations, matchStats = sync(context, settings, progress, api, nil)
+			sync(context, settings, progress, api, nil)
 		end,
 	})
 
@@ -649,8 +635,6 @@ function SyncObservations.fullSync(settings, api)
 		)
 		LrDialogs.message("Synchronization complete", msg, "info")
 	end
-
-	return observations
 end
 
 return SyncObservations
