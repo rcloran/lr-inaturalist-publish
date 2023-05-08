@@ -58,4 +58,4 @@ files["*/Info.lua"].std = "lightroom_plugin_info"
 
 -- Vendored files that we don't expect to maintain
 files["*/sha2.lua"].ignore = { "." }
-files["*/json.lua"].ignore = { "." }
+files["*/dkjson.lua"].ignore = { "." }

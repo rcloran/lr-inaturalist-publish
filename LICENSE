@@ -29,8 +29,8 @@ and may have a different license. The files have been included largely
 unmodified from their original source, except to add copyright and licensing
 information where necessary.
 
-json.lua
---------
+dkjson.lua
+----------
 
 Copyright (C) 2010-2013 David Heiko Kolf
 

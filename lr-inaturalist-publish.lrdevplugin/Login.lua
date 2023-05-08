@@ -6,7 +6,7 @@ local LrTasks = import("LrTasks")
 
 local INaturalistAPI = require("INaturalistAPI")
 local Random = require("Random")
-local json = require("json")
+local json = require("dkjson")
 local sha2 = require("sha2")
 
 local Login = {}

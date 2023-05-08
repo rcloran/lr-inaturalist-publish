@@ -6,7 +6,7 @@ local LrStringUtils = import("LrStringUtils")
 local LrTasks = import("LrTasks")
 
 local Updates = require("Updates")
-local json = require("json")
+local json = require("dkjson")
 
 local INaturalistAPI = {
 	clientId = "abue3CpJkLe1adPWFNFzrCj_riap_diH0bpGGq2HYIE",

@@ -1,7 +1,7 @@
 local LrFileUtils = import("LrFileUtils")
 local LrPathUtils = import("LrPathUtils")
 
-local json = require("json")
+local json = require("dkjson")
 
 local home = LrPathUtils.getStandardFilePath("home")
 local f = LrPathUtils.child(home, ".lr-inaturalist-publish.json")

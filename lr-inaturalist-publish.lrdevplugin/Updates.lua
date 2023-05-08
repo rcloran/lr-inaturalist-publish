@@ -8,7 +8,7 @@ local LrHttp = import("LrHttp")
 local LrTasks = import("LrTasks")
 
 local Info = require("Info")
-local json = require("json")
+local json = require("dkjson")
 
 local Updates = {
 	baseUrl = "https://api.github.com/",
