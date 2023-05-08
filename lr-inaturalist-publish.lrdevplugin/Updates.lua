@@ -8,7 +8,7 @@ local LrHttp = import("LrHttp")
 local LrTasks = import("LrTasks")
 
 local Info = require("Info")
-local JSON = require("JSON")
+local json = require("json")
 
 local Updates = {
 	baseUrl = "https://api.github.com/",
@@ -28,7 +28,7 @@ local function getLatestVersion()
 		return
 	end
 
-	local success, release = pcall(JSON.decode, JSON, data)
+	local success, release = pcall(json.decode, data)
 	if not success then
 		return
 	end

@@ -29,27 +29,14 @@ and may have a different license. The files have been included largely
 unmodified from their original source, except to add copyright and licensing
 information where necessary.
 
-JSON.lua
+json.lua
 --------
 
-Copyright 2010-2017 Jeffrey Friedl
+Copyright (C) 2010-2013 David Heiko Kolf
 
-Obtained from: http://regex.info/blog/lua/json
+Obtained from: http://dkolf.de/src/dkjson-lua.fsl/home
 
-License:
-
-```
--- This code is released under a Creative Commons CC-BY "Attribution" License:
--- http://creativecommons.org/licenses/by/3.0/deed.en_US
---
--- It can be used for any purpose so long as:
---    1) the copyright notice above is maintained
---    2) the web-page links above are maintained
---    3) the 'AUTHOR_NOTE' string below is maintained
---
-local VERSION = '20211016.28' -- version history at end of file
-local AUTHOR_NOTE = "-[ JSON.lua package by Jeffrey Friedl (http://regex.info/blog/lua/json) version 20211016.28 ]-"
-```
+License: MIT License
 
 sha2.lua
 --------

@@ -5,8 +5,8 @@ local LrPasswords = import("LrPasswords")
 local LrTasks = import("LrTasks")
 
 local INaturalistAPI = require("INaturalistAPI")
-local JSON = require("JSON")
 local Random = require("Random")
+local json = require("json")
 local sha2 = require("sha2")
 
 local Login = {}
@@ -111,7 +111,7 @@ function Login.getToken(code, challenge)
 	elseif respHeaders.status ~= 200 then
 		error(string.format("iNaturalist API error: %s", data))
 	end
-	data = JSON:decode(data)
+	data = json.decode(data)
 	return data.access_token
 end
 

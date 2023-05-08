@@ -5,8 +5,8 @@ local LrPathUtils = import("LrPathUtils")
 local LrStringUtils = import("LrStringUtils")
 local LrTasks = import("LrTasks")
 
-local JSON = require("JSON")
 local Updates = require("Updates")
+local json = require("json")
 
 local INaturalistAPI = {
 	clientId = "abue3CpJkLe1adPWFNFzrCj_riap_diH0bpGGq2HYIE",
@@ -62,7 +62,7 @@ local function req(f, ...)
 		elseif headers.status ~= 200 then
 			err = { code = headers.status, message = headers.statusDes }
 		else
-			return JSON:decode(data)
+			return json.decode(data)
 		end
 
 		if not retryable[err.code] then
@@ -108,7 +108,7 @@ function INaturalistAPI:apiPost(path, content, method, content_type)
 	table.insert(headers, { field = "Content-Type", value = content_type })
 
 	if content then
-		content = JSON:encode(content)
+		content = json.encode(content)
 	else
 		content = ""
 	end
