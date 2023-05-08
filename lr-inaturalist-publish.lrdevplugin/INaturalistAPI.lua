@@ -242,6 +242,7 @@ end
 function INaturalistAPI:listObservationsWithPagination(search, limit)
 	local resultsRemain, resultsRetrieved = true, 0
 	local results
+	local fetching = false
 
 	search = shallowCopy(search)
 	search.per_page = 100
@@ -252,30 +253,53 @@ function INaturalistAPI:listObservationsWithPagination(search, limit)
 
 	local function fetch()
 		local qs = INaturalistAPI.formEncode(search)
-		results = self:apiGet("observations?" .. qs)
-		resultsRemain = #results.results >= results.per_page
-		resultsRetrieved = resultsRetrieved + #results.results
+		local newResults = self:apiGet("observations?" .. qs)
+		resultsRemain = #newResults.results >= newResults.per_page
+		resultsRetrieved = resultsRetrieved + #newResults.results
 
-		if #results.results > 0 then
-			search.id_below = results.results[#results.results].id
+		if #newResults.results > 0 then
+			search.id_below = newResults.results[#newResults.results].id
 		end
+
+		if not results then
+			results = newResults
+		else
+			for _, r in ipairs(newResults.results) do
+				table.insert(results.results, r)
+			end
+		end
+
+		fetching = false
 	end
 
 	local iter = function()
-		if (#results.results == 0) and resultsRemain and not (limit and resultsRetrieved >= limit) then
-			fetch()
+		if
+			not fetching
+			and (#results.results <= 100)
+			and resultsRemain
+			and not (limit and resultsRetrieved >= limit)
+		then
+			fetching = true
+			LrTasks.startAsyncTask(fetch)
 		end
 
-		if #results.results == 0 then
-			return
+		if (not results) or #results.results == 0 then
+			if not fetching then
+				return
+			else
+				while fetching do
+					LrTasks.sleep(0.1)
+				end
+			end
 		end
 
-		return table.remove(results.results, 1)
+		return table.remove(results.results, 1), results.total_results
 	end
 
-	fetch()
+	fetching = true
+	LrTasks.startAsyncTask(fetch)
 
-	return iter, results.total_results
+	return iter
 end
 -- POST /observations -- Observation Create
 function INaturalistAPI:createObservation(observation)

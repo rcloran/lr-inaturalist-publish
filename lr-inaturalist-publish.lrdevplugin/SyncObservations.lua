@@ -510,7 +510,7 @@ local function sync(functionContext, settings, progress, api, lastSync)
 	}
 
 	progress:setCaption("Downloading observations...")
-	local observationIter, totalResults = api:listObservationsWithPagination(query, DevSettings.syncLimit)
+	local observationIter = api:listObservationsWithPagination(query, DevSettings.syncLimit)
 
 	-- Now apply downloaded data to the catalog
 	local mostRecentUpdate = 0
@@ -521,7 +521,7 @@ local function sync(functionContext, settings, progress, api, lastSync)
 	local keywordCache = {}
 	local i = 0
 	while true do
-		local observation = observationIter()
+		local observation, totalResults = observationIter()
 		if not observation then
 			break
 		end
