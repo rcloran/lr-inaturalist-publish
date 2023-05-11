@@ -20,7 +20,6 @@ local exportServiceProvider = {
 		{ key = "syncKeywordsRoot", default = -1 },
 		{ key = "syncOnPublish", default = true },
 		{ key = "syncSearchIn", default = -1 },
-		{ key = "uploadKeywords", default = false },
 		{ key = "uploadKeywordsSpeciesGuess", default = true },
 	},
 	hideSections = {
@@ -122,18 +121,6 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 	}
 	local options = {
 		title = "Export options",
-		f:row({
-			spacing = f:control_spacing(),
-			f:static_text({
-				title = "Export Lightroom keywords as iNaturalist tags",
-				alignment = "right",
-				width = LrView.share("inaturalistSyncLabel"),
-			}),
-			f:checkbox({
-				value = bind("uploadKeywords"),
-				alignment = "left",
-			}),
-		}),
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({

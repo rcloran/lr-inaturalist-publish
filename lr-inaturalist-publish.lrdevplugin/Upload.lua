@@ -11,38 +11,15 @@ local SyncObservations = require("SyncObservations")
 
 local Upload = {}
 
-local function makeObservationObj(photo, exportSettings)
-	local observation = {}
-
-	local dateTimeISO8601 = photo:getRawMetadata("dateTimeISO8601")
-	if dateTimeISO8601 and #dateTimeISO8601 > 0 then
-		observation.observed_on_string = dateTimeISO8601
-	end
-
-	local description = photo:getFormattedMetadata("caption")
-	if description and #description > 0 then
-		observation.description = description
-	end
-
-	local gps = photo:getRawMetadata("gps")
-	if gps then
-		observation.latitude = gps.latitude
-		observation.longitude = gps.longitude
-	end
-
-	local keywords = photo:getRawMetadata("keywords")
-	if exportSettings.uploadKeywords then
-		if keywords and #keywords > 0 then
-			local tagList = keywords[1]:getName()
-			for i = 2, #keywords do
-				tagList = tagList .. "," .. keywords[i]:getName()
-			end
-			observation.tag_list = tagList
-		end
+local function updateObservation(observation, photo, exportSettings)
+	local observationUUID = photo:getPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID)
+	if observationUUID then
+		observation.uuid = observationUUID
 	end
 
 	local rootId = exportSettings.syncKeywordsRoot
-	if exportSettings.uploadKeywordsSpeciesGuess and rootId and rootId ~= -1 then
+	if not observation.species_guess and exportSettings.uploadKeywordsSpeciesGuess and rootId and rootId ~= -1 then
+		local keywords = photo:getRawMetadata("keywords")
 		for _, kw in pairs(keywords) do
 			-- If multiple are set we'll end up using the last one
 			if SyncObservations.kwIsParentedBy(kw, rootId) then
@@ -55,45 +32,39 @@ local function makeObservationObj(photo, exportSettings)
 		end
 	end
 
-	local observationUUID = photo:getPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID)
-	if observationUUID then
-		observation.uuid = observationUUID
-	end
-
 	return observation
 end
 
 local function uploadPhoto(api, observations, rendition, path, exportSettings)
-	local localObservationUUID = rendition.photo:getPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID)
+	local observationUUID = rendition.photo:getPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID)
 
-	if localObservationUUID and observations[localObservationUUID] then
-		-- There's already an observation that was created this session
-		local observation_photo = api:createObservationPhoto(path, observations[localObservationUUID])
+	if observationUUID and observations[observationUUID] then
+		-- There's already an observation that was created this session. It's
+		-- faster to add an observation photo than upload photo then update the
+		-- observation.
+		local observation_photo = api:createObservationPhoto(path, observations[observationUUID])
 		LrFileUtils.delete(path)
 		local observation_stub = {
-			id = observations[localObservationUUID],
-			uuid = localObservationUUID,
+			id = observations[observationUUID],
+			uuid = observationUUID,
 		}
 
 		return observation_photo.photo, observation_stub
 	end
 
-	-- We might have linked a new photo to an existing observation, or it might
-	-- be a new observation. In the former case, POST to /observations will
-	-- update the old observation, so we can just do that. Any updated fields
-	-- will change to the new value, but if they're blank we omit them in the
-	-- POST so they should stay.
-	local observation = makeObservationObj(rendition.photo, exportSettings)
+	-- Either going to create a new obs, or we have a UUID and haven't seen
+	-- this obs yet this session.
+	-- In either case, POST /observations with local_photos set is safe. In
+	-- the latter case it will be added to the list of observation_photos.
+	local photo = api:createPhoto(path)
+	LrFileUtils.delete(path)
+	local observation = updateObservation(photo.to_observation, rendition.photo, exportSettings)
+	-- Weirdly the `to_observation` included in the photo response doesn't
+	-- include the photo ID
+	observation.local_photos = { [0] = { photo.id } }
 	observation = api:createObservation(observation)
 
-	-- Record the observation for this session
-	observations[observation.uuid] = observation.id
-
-	-- Upload the photo
-	local observation_photo = api:createObservationPhoto(path, observation.id)
-	LrFileUtils.delete(path)
-
-	return observation_photo.photo, observation
+	return photo, observation
 end
 
 local function saferDelete(api, photoId)
@@ -165,6 +136,7 @@ function Upload.processRenderedPhotos(_, exportContext)
 			if success then
 				local previousPhotoId = rendition.publishedPhotoId
 				local photo, observation = uploadPhoto(api, observations, rendition, pathOrMessage, exportSettings)
+				observations[observation.uuid] = observation.id
 
 				maybeDeleteOld(api, previousPhotoId)
 
