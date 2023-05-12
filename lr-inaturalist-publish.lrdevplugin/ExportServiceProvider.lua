@@ -16,6 +16,7 @@ local exportServiceProvider = {
 		{ key = "login", default = "" },
 		{ key = "syncKeywords", default = true },
 		{ key = "syncKeywordsCommon", default = true },
+		{ key = "syncKeywordsSynonym", default = true },
 		{ key = "syncKeywordsIncludeOnExport", default = true },
 		{ key = "syncKeywordsRoot", default = -1 },
 		{ key = "syncOnPublish", default = true },
@@ -230,6 +231,29 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 			}),
 			f:checkbox({
 				value = bind("syncKeywordsCommon"),
+				enabled = bind("syncKeywords"),
+			}),
+		}),
+		f:row({
+			spacing = f:control_spacing(),
+			f:static_text({
+				title = bind({
+					keys = { "syncKeywordsCommon" },
+					transform = function()
+						local r = "Set common name as a keyword synonym"
+						if propertyTable.syncKeywordsCommon then
+							r = "Set scientific name as a keyword synonym"
+						end
+						r = r .. '\nKeyword synonyms are always exported (see "Help...")'
+						return r
+					end,
+				}),
+				alignment = "right",
+				width = LrView.share("inaturalistSyncLabel"),
+				enabled = bind("syncKeywords"),
+			}),
+			f:checkbox({
+				value = bind("syncKeywordsSynonym"),
 				enabled = bind("syncKeywords"),
 			}),
 		}),
