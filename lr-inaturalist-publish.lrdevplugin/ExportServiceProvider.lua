@@ -20,6 +20,7 @@ local exportServiceProvider = {
 		{ key = "syncKeywordsRoot", default = -1 },
 		{ key = "syncOnPublish", default = true },
 		{ key = "syncSearchIn", default = -1 },
+		{ key = "syncTitle", default = false },
 		{ key = "uploadKeywordsSpeciesGuess", default = true },
 	},
 	hideSections = {
@@ -258,6 +259,17 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 				value = bind("syncKeywordsRoot"),
 				items = bind("syncKeywordsRootItems"),
 				enabled = bind("syncKeywords"),
+			}),
+		}),
+		f:row({
+			spacing = f:control_spacing(),
+			f:static_text({
+				title = "Set title to observation identification",
+				alignment = "right",
+				width = LrView.share("inaturalistSyncLabel"),
+			}),
+			f:checkbox({
+				value = bind("syncTitle"),
 			}),
 		}),
 		f:separator({ fill_horizontal = 1 }),

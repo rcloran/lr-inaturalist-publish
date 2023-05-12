@@ -237,29 +237,36 @@ local function kwIsEquivalent(kw, hierarchy, rootId)
 end
 
 local function syncKeywords(photo, kw, settings, keywordCache)
-	if not settings.syncKeywords or not kw then
-		return
-	end
 	local unwanted = {}
 	local needsAddition = true
-	for _, oldKw in pairs(photo:getRawMetadata("keywords")) do
-		if SyncObservations.kwIsParentedBy(oldKw, settings.syncKeywordsRoot) then
-			if kwIsEquivalent(oldKw, kw, settings.syncKeywordsRoot) then
-				needsAddition = false
-			else
-				unwanted[#unwanted + 1] = oldKw
+	if settings.syncKeywords and kw then
+		for _, oldKw in pairs(photo:getRawMetadata("keywords")) do
+			if SyncObservations.kwIsParentedBy(oldKw, settings.syncKeywordsRoot) then
+				if kwIsEquivalent(oldKw, kw, settings.syncKeywordsRoot) then
+					needsAddition = false
+				else
+					unwanted[#unwanted + 1] = oldKw
+				end
 			end
 		end
 	end
 
-	if #unwanted > 0 or needsAddition then
+	local needsTitle = settings.syncTitle and photo:getFormattedMetadata("title") ~= kw[#kw][1]
+
+	if #unwanted > 0 or needsAddition or needsTitle then
 		withWriteAccessDo("Apply keyword", function()
-			for _, oldKw in pairs(unwanted) do
-				photo:removeKeyword(oldKw)
+			if #unwanted > 0 or needsAddition then
+				for _, oldKw in pairs(unwanted) do
+					photo:removeKeyword(oldKw)
+				end
+				if needsAddition then
+					kw = createKeyword(kw, keywordCache, settings)
+					photo:addKeyword(kw)
+				end
 			end
-			if needsAddition then
-				kw = createKeyword(kw, keywordCache, settings)
-				photo:addKeyword(kw)
+
+			if needsTitle then
+				photo:setRawMetadata("title", kw[#kw][1])
 			end
 		end, { timeout = 3 })
 	end
@@ -549,7 +556,7 @@ local function sync(functionContext, settings, progress, api, lastSync)
 		if #photos == 1 or matchedByUUID then
 			matchStats["observations"] = (matchStats["observations"] or 0) + 1
 			local kw = nil
-			if settings.syncKeywords then
+			if settings.syncKeywords or settings.syncTitle then
 				kw = makeKeywordPath(observation, settings.syncKeywordsCommon)
 			end
 			for _, photo in pairs(photos) do
