@@ -44,6 +44,15 @@ the link in Lightroom -- you should allow that. After returning to Lightroom
 the dialog should update to indicate that you are logged in.
 
 Change the export settings in whatever way you prefer, and click `Save`.
+iNaturalist only supports images up to 2048 pixels, so resizing images to be
+2048 or fewer pixels on the long edge is recommended. Be careful with the
+`Metadata` section of the settings. If you don't include enough metadata then
+iNaturalist will not be able to create observations correctly. Choosing `All
+Except Camera & Camera Raw Info`, and making sure `Remove Location Info` is not
+checked will ensure all the most useful data is included.
+
+You can learn more about the available upload settings [on the
+wiki](https://github.com/rcloran/lr-inaturalist-publish/wiki/upload).
 
 You may return to this set up later by right clicking the publish service and
 choosing `Edit Settings...`
@@ -93,8 +102,12 @@ other collection in Lightroom. When you're ready to upload your images,
 navigate to the collection and click the "Publish" button at the top. Your
 images will be uploaded to iNaturalist, and observations will be created.
 
-Keywords on your photos may be used as iNaturalist tags, species guesses, or
-both, depending on how you configured the publish service.
+iNaturalist will use keywords from your images (if included in the metadata) as
+both tags and species guesses. Even if you don't export any keywords or tags,
+you can use keywords as an initial identification for an observations created.
+
+You can learn more about what metadata is exported [on the
+wiki](https://github.com/rcloran/lr-inaturalist-publish/wiki/upload).
 
 If you have multiple photos that belong to one observation, you can group them
 before publishing so that only one observation will be created. Select the
