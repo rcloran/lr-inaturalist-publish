@@ -181,7 +181,8 @@ local function createKeyword(kw, cache, settings)
 	withWriteAccessDo("Create keyword " .. kw[#kw][1], function()
 		for _, part in pairs(kw) do
 			if not cache[part[1]] then
-				local tmp = catalog:createKeyword(part[1], { part[2] }, settings.includeOnExport, parent, true)
+				local tmp =
+					catalog:createKeyword(part[1], { part[2] }, settings.syncKeywordsIncludeOnExport, parent, true)
 				cache[part[1]] = { tmp }
 			end
 			cache = cache[part[1]]
