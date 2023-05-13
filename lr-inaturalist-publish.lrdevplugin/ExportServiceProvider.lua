@@ -23,6 +23,7 @@ local exportServiceProvider = {
 		{ key = "syncSearchIn", default = -1 },
 		{ key = "syncTitle", default = false },
 		{ key = "uploadKeywordsSpeciesGuess", default = true },
+		{ key = "uploadPrivateLocation", default = "obscured" },
 	},
 	hideSections = {
 		"exportLocation",
@@ -163,6 +164,23 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 					end,
 				}),
 				alignment = "left",
+			}),
+		}),
+		f:row({
+			spacing = f:control_spacing(),
+			f:static_text({
+				title = "Set observation location for photos in LR private locations",
+				alignment = "right",
+				width = LrView.share("inaturalistSyncLabel"),
+			}),
+			f:popup_menu({
+				value = bind("uploadPrivateLocation"),
+				items = {
+					{ title = "Public", value = "public" },
+					{ title = "Obscured", value = "obscured" },
+					{ title = "Private", value = "private" },
+					{ title = "Don't set", value = "unset" },
+				},
 			}),
 		}),
 	}

@@ -32,6 +32,18 @@ local function updateObservation(observation, photo, exportSettings)
 		end
 	end
 
+	if not observation.latitude then
+		local gps = photo:getRawMetadata("gps")
+		if gps and photo:getRawMetadata("locationIsPrivate") then
+			local uploadPrivateLocation = exportSettings.uploadPrivateLocation
+			if uploadPrivateLocation and uploadPrivateLocation ~= "unset" then
+				observation.latitude = gps.latitude
+				observation.longitude = gps.longitude
+				observation.geoprivacy = uploadPrivateLocation
+			end
+		end
+	end
+
 	return observation
 end
 
