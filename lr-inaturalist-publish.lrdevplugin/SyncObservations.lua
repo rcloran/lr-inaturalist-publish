@@ -268,8 +268,8 @@ local function syncKeywords(photo, kw, settings, keywordCache)
 					photo:removeKeyword(oldKw)
 				end
 				if needsAddition then
-					kw = createKeyword(kw, keywordCache, settings)
-					photo:addKeyword(kw)
+					local lrkw = createKeyword(kw, keywordCache, settings)
+					photo:addKeyword(lrkw)
 				end
 			end
 
