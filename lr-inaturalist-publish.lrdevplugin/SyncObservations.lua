@@ -241,6 +241,10 @@ local function kwIsEquivalent(kw, hierarchy, rootId)
 end
 
 local function syncKeywords(photo, kw, settings, keywordCache)
+	if not kw then
+		return
+	end
+
 	local unwanted = {}
 	local needsAddition = true
 	if settings.syncKeywords and kw then
