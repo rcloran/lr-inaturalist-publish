@@ -9,6 +9,7 @@ local bind = LrView.bind
 local Login = require("Login")
 local SyncObservations = require("SyncObservations")
 local Upload = require("Upload")
+local sha2 = require("sha2")
 
 local exportServiceProvider = {
 	supportsIncrementalPublish = "only",
@@ -392,6 +393,61 @@ function exportServiceProvider.goToPublishedCollection(publishSettings, _)
 	LrHttp.openUrlInBrowser("https://www.inaturalist.org/observations/" .. publishSettings.login)
 end
 
+local function checkSettings(settings)
+	local suggestions = {}
+
+	if not settings.LR_size_doNotEnlarge then
+		table.insert(suggestions, ' - Select "Don\'t Enlarge"')
+	end
+
+	local t = settings.LR_size_resizeType
+	if not t then
+		table.insert(suggestions, " - Resize to Fit, Long Edge, 2048 pixels or fewer")
+	elseif t == "wh" or t == "dimensions" then
+		local longEdge = math.max(settings.LR_size_maxHeight, settings.LR_size_maxWidth)
+		if longEdge > 2048 then
+			table.insert(suggestions, ' - Consider using "Long Edge" instead')
+			table.insert(suggestions, " - Reduce image size to 2048 pixels or fewer")
+		end
+	elseif t == "longEdge" then
+		if settings.LR_size_maxHeight > 2048 then
+			table.insert(suggestions, " - Reduce long edge size to 2048 pixels or fewer")
+		end
+	elseif t == "shortEdge" then
+		table.insert(suggestions, ' - Use "Long Edge" instead of "Short Edge"')
+		if settings.LR_size_maxHeight > 2048 then
+			table.insert(suggestions, " - Reduce edge size to 2048 pixels or fewer")
+		end
+	elseif t == "megapixels" then
+		table.insert(suggestions, ' - Use "Long Edge" instead of "Megapixels"')
+		-- 2048px*2048px = 4.194304 MP
+		if settings.LR_size_megapixels > 4.2 then
+			table.insert(suggestions, ' - If you need to use "Megapixels", limit to less than 4.2')
+		end
+	elseif t == "percentage" then
+		table.insert(suggestions, ' - Use "Long Edge" instead of "Percentage"')
+	end
+
+	if #suggestions == 0 then
+		return
+	end
+
+	local intro = "iNaturalist limits image uploads to 2048 pixels on the long side. The size settings you have "
+		.. "chosen may result in larger images, so uploads could take a longer time than needed, and waste server "
+		.. 'resources on iNaturalist.\n\nSuggestions in "Image Sizing" section of settings:\n\n'
+
+	local trailer = "\n\nPlease open publish service settings again to edit the image sizing settings."
+
+	local suggStr = table.concat(suggestions, "\n")
+	LrDialogs.resetDoNotShowFlag(suggStr)
+
+	LrDialogs.messageWithDoNotShow({
+		message = "Image sizing too large",
+		info = intro .. suggStr .. trailer,
+		actionPrefKey = sha2.sha256(suggStr),
+	})
+end
+
 function exportServiceProvider.didCreateNewPublishService(publishSettings, info)
 	-- Emulates the setup we have when editing config
 	publishSettings.LR_publishService = info.publishService
@@ -428,6 +484,10 @@ function exportServiceProvider.didCreateNewPublishService(publishSettings, info)
 	if r == "ok" then
 		SyncObservations.fullSync(publishSettings)
 	end
+end
+
+function exportServiceProvider.didUpdatePublishService(publishSettings, _)
+	checkSettings(publishSettings)
 end
 
 -- function exportServiceProvider.canAddCommentsToService(publishSettings)
