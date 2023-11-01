@@ -43,6 +43,10 @@ local exportServiceProvider = {
 
 -- called when the user picks this service in the publish dialog
 function exportServiceProvider.startDialog(propertyTable)
+	if not propertyTable.LR_editingExistingPublishConnection then
+		-- Start with empty login for new connections
+		propertyTable.login = ""
+	end
 	propertyTable:addObserver("login", function()
 		Login.verifyLogin(propertyTable)
 	end)
