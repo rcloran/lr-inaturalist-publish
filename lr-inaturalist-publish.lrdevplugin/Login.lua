@@ -14,11 +14,11 @@ local Login = {}
 function Login.verifyLogin(propertyTable)
 	if propertyTable.login and #propertyTable.login > 0 then
 		propertyTable.accountStatus = "Logged in as " .. propertyTable.login
-		propertyTable.loginButtonTitle = "Log out"
+		propertyTable.loginButtonEnabled = false
 		propertyTable.LR_cantExportBecause = nil
 	else
 		propertyTable.accountStatus = "Not logged in"
-		propertyTable.loginButtonTitle = "Log in"
+		propertyTable.loginButtonEnabled = true
 		propertyTable.LR_cantExportBecause = "Not logged in to iNaturalist"
 	end
 end
@@ -42,7 +42,7 @@ function Login.login(propertyTable)
 	-- log out instead.
 	if propertyTable.login and #propertyTable.login > 0 then
 		logger:debugf("Logging out: %s", propertyTable.login)
-		LrPasswords.store(propertyTable.login, "")
+		propertyTable.loggedOut = propertyTable.login
 		propertyTable.login = ""
 		return
 	end

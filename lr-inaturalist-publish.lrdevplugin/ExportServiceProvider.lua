@@ -119,7 +119,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 				fill_horizontal = 1,
 			}),
 			f:push_button({
-				title = bind("loginButtonTitle"),
+				title = "Log in",
 				enabled = bind("loginButtonEnabled"),
 				action = function()
 					LrTasks.startAsyncTask(function()
