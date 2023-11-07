@@ -23,6 +23,9 @@ function INaturalistAPI:new(login, accessToken)
 	setmetatable(o, { __index = self })
 	if login and not accessToken then
 		accessToken = LrPasswords.retrieve(login)
+		if not accessToken then
+			return nil
+		end
 	end
 	o.accessToken = accessToken
 	return o
