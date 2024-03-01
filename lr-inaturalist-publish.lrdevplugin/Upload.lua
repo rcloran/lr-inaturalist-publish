@@ -51,6 +51,7 @@ local function uploadPhoto(api, observations, rendition, path, exportSettings)
 	local observationUUID = rendition.photo:getPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID)
 
 	if observationUUID and observations[observationUUID] then
+		logger:tracef("Updating observation %s", observationUUID)
 		-- There's already an observation that was created this session. It's
 		-- faster to add an observation photo than upload photo then update the
 		-- observation.
@@ -68,6 +69,7 @@ local function uploadPhoto(api, observations, rendition, path, exportSettings)
 	-- this obs yet this session.
 	-- In either case, POST /observations with local_photos set is safe. In
 	-- the latter case it will be added to the list of observation_photos.
+	logger:tracef("Creating photo and observation with UUID %s", observationUUID)
 	local photo = api:createPhoto(path)
 	LrFileUtils.delete(path)
 	local observation = updateObservation(photo.to_observation, rendition.photo, exportSettings)
@@ -75,6 +77,7 @@ local function uploadPhoto(api, observations, rendition, path, exportSettings)
 	-- include the photo ID
 	observation.local_photos = { [0] = { photo.id } }
 	observation = api:createObservation(observation)
+	logger:tracef("createObservation returned UUID: %s", observation.uuid)
 
 	return photo, observation
 end
