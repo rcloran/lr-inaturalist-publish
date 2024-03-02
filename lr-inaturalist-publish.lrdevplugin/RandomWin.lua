@@ -43,7 +43,7 @@ end
 local function getUUIDs()
 	local vbs = LrPathUtils.child(_PLUGIN.path, "uuid.vbs")
 	local output = execWithOutput('cscript /NoLogo "' .. vbs .. '"')
-	for line in output:gmatch("([^\n]+)\n") do
+	for line in output:gmatch("([^\r\n]+)\r?\n") do
 		if not isUUID(line) then
 			return false
 		end
