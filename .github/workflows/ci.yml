@@ -29,10 +29,11 @@ jobs:
       - name: Build
         id: build
         run: ./build/build.sh
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build.outputs.built_name }}
           path: ${{ steps.build.outputs.built_zip }}
+          if-no-files-found: error
       - uses: softprops/action-gh-release@v1
         name: Upload nightly
         if: github.ref == 'refs/heads/main'
