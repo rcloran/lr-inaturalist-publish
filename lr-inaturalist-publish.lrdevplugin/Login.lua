@@ -12,7 +12,9 @@ local sha2 = require("sha2")
 local Login = {}
 
 function Login.verifyLogin(propertyTable)
-	if propertyTable.login and #propertyTable.login > 0 then
+	logger:trace("Login.verifyLogin()")
+
+	if propertyTable.login and #propertyTable.login > 0 and LrPasswords.retrieve(propertyTable.login) then
 		propertyTable.accountStatus = "Logged in as " .. propertyTable.login
 		propertyTable.loginButtonEnabled = false
 		propertyTable.LR_cantExportBecause = nil
@@ -70,6 +72,8 @@ function Login.handleAuthRedirect(url)
 			)
 			return
 		end
+		-- Ensure that login is changed so that verifyLogin runs (in case of re-login)
+		propertyTable.login = nil
 		LrTasks.startAsyncTask(function()
 			local accessToken = Login.getToken(params["code"], propertyTable.pkceChallenge)
 			propertyTable.pkceChallenge = nil
