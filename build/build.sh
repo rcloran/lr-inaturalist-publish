@@ -7,9 +7,9 @@
 
 GITHUB_OUTPUT=${GITHUB_OUTPUT:=/dev/fd/0}
 
-src=lr-inaturalist-publish.lrdevplugin
 name=lr-inaturalist-publish
-plug=${name}.lrplugin
+src=${name}.lrdevplugin
+dst=${name}.lrplugin
 
 description=$(git describe --match "v[0-9]*.[0-9]*.[0-9]*" --exclude 'v*[!0-9.]*' --long --dirty)
 last_tag=${description%%-*}
@@ -37,11 +37,11 @@ fi
 
 mkdir -p build
 cd build || exit
-rm -rf "$plug"
-cp -pr ../"$src" "$plug"
+rm -rf "$dst"
+cp -pr ../"$src" "$dst"
 # sed on macOS and Linux have different behaviours with -i. Use perl instead.
-perl -pi -e "s/VERSION = DEV_VERSION/VERSION = $v/" "${plug}/Info.lua"
-zip -X9vr "${name}-${version}".zip "${plug}"
+perl -pi -e "s/VERSION = DEV_VERSION/VERSION = $v/" "${dst}/Info.lua"
+zip -X9vr "${name}-${version}".zip "${dst}"
 
 echo "built_name=${name}-${version}" >> "$GITHUB_OUTPUT"
 echo "built_zip=build/${name}-${version}.zip" >> "$GITHUB_OUTPUT"
