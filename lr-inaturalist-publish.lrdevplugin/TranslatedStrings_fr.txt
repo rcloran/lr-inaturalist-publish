@@ -27,7 +27,7 @@
 "$$$/iNat/Export/SetScientificNameSynonym=Définir le nom scientifique en tant que mot-clé synonyme"
 "$$$/iNat/Export/SetIncludeOnExport=Ensemble \"
 "$$$/iNat/Export/PutKeywordsWithin=Mettez les mots clés dans ce mot-clé: \ nNote: Si ce n'est pas défini, les mots clés ne peuvent pas être correctement modifiés (voir \"
-"$$$/iNat/Export/SetTitleToIdentification=Définir le titre sur l'observation"
+"$$$/iNat/Export/SetTitleToIdentification=Définir le titre de l'observation"
 "$$$/iNat/Export/SynchronizeEverything=Synchronisez tout depuis Inaturalist, même si cela n'a peut-être pas changé:"
 "$$$/iNat/Export/FullSyncNow=Synchronisation complète maintenant"
 "$$$/iNat/Export/SyncChanges=Synchroniser les changements depuis la dernière synchronisation:"
