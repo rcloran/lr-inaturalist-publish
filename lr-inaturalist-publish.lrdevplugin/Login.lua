@@ -3,6 +3,7 @@ local LrDialogs = import("LrDialogs")
 local LrHttp = import("LrHttp")
 local LrPasswords = import("LrPasswords")
 local LrTasks = import("LrTasks")
+
 local INaturalistAPI = require("INaturalistAPI")
 local Random = require("Random")
 local json = require("dkjson")
@@ -50,16 +51,13 @@ function Login.login(propertyTable)
 		code_challenge,
 		INaturalistAPI.urlencode(INaturalistAPI.oauthRedirect)
 	)
-
 	propertyTable.pkceChallenge = challenge
 	Login.inProgressLogin = propertyTable
-
 	LrHttp.openUrlInBrowser(url)
 end
 
 function Login.handleAuthRedirect(url)
 	logger:trace("handleAuthRedirect()")
-
 	local params = {}
 	for k, v in url:gmatch("([^&=?]-)=([^&=?]+)") do
 		params[k] = v
@@ -77,17 +75,13 @@ function Login.handleAuthRedirect(url)
 			)
 			return
 		end
-
 		-- Ensure that login is changed so that verifyLogin runs (in case of re-login)
 		propertyTable.login = nil
-
 		LrTasks.startAsyncTask(function()
 			local accessToken = Login.getToken(params["code"], propertyTable.pkceChallenge)
 			propertyTable.pkceChallenge = nil
-
 			local api = INaturalistAPI:new(nil, accessToken)
 			local login = api:getUser().login
-
 			LrPasswords.store(login, accessToken)
 			propertyTable.login = login
 		end)
@@ -97,13 +91,10 @@ end
 -- Obtain an OAuth access token (second stage of OAuth)
 function Login.getToken(code, challenge)
 	logger:trace("getToken()")
-
 	assert(type(code) == "string")
 	assert(type(challenge) == "string")
-
 	local url = "https://www.inaturalist.org/oauth/token"
 	local headers = { { field = "Content-Type", value = "application/x-www-form-urlencoded" } }
-
 	local body = {
 		code = code,
 		client_id = INaturalistAPI.clientId,
@@ -112,14 +103,12 @@ function Login.getToken(code, challenge)
 		redirect_uri = INaturalistAPI.oauthRedirect,
 	}
 	body = INaturalistAPI.formEncode(body)
-
 	local data, respHeaders = LrHttp.post(url, body, headers)
 	if respHeaders.error then
 		error(string.format("Error logging in: %s", headers.error.name))
 	elseif respHeaders.status ~= 200 then
 		error(string.format("iNaturalist API error: %s", data))
 	end
-
 	data = json.decode(data)
 	return data.access_token
 end

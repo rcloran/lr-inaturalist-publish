@@ -1,15 +1,19 @@
 local LrApplication = import("LrApplication")
 local LrDialogs = import("LrDialogs")
+
 local MetadataConst = require("MetadataConst")
 local Random = require("Random")
+
 -- Group photos into an observation. That is, assign observation UUIDs.
 local function groupObservation()
 	local catalog = LrApplication.activeCatalog()
 	local photos = catalog:getTargetPhotos()
+
 	if #photos <= 1 then
 		LrDialogs.message(LOC("$$$/iNat/Group/SelectMorePhotos=Please select more than 1 photo to group"))
 		return
 	end
+
 	local uuid, url = nil, nil
 	for _, photo in pairs(photos) do
 		local thisUUID = photo:getPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID)
@@ -30,9 +34,11 @@ local function groupObservation()
 			end
 		end
 	end
+
 	if uuid == nil then
 		uuid = Random.uuid4()
 	end
+
 	catalog:withWriteAccessDo(LOC("$$$/iNat/Group/GroupIntoObservation=Group into observation"), function(_)
 		for _, photo in pairs(photos) do
 			photo:setPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID, uuid)
@@ -42,4 +48,5 @@ local function groupObservation()
 		LrDialogs.showBezel(string.format(msg, #photos))
 	end)
 end
+
 import("LrTasks").startAsyncTask(groupObservation)
