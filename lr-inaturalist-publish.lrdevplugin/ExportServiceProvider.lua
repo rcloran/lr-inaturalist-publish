@@ -179,8 +179,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 			spacing = f:control_spacing(),
 			f:static_text({
 				title = LOC(
-					"$$$/iNat/Export/SetObservationLocation=Set observation location for photos "
-						.. "in LR private locations"
+					"$$$/iNat/Export/SetObservationLocation=Set observation location for photos in LR private locations"
 				),
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
@@ -275,16 +274,12 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 					transform = function()
 						local r = LOC("$$$/iNat/Export/SetCommonNameSynonym=Set common name as a keyword synonym")
 						if propertyTable.syncKeywordsCommon then
-							r = LOC(
-								"$$$/iNat/Export/SetScientificNameSynonym=Set scientific name "
-									.. "as a keyword synonym"
-							)
+							r = LOC("$$$/iNat/Export/SetScientificNameSynonym=Set scientific name as a keyword synonym")
 						end
 						r = r
 							.. "\n"
 							.. LOC(
-								"$$$/iNat/Export/SynonymsExported=Keyword synonyms are "
-									.. "always exported see '(Help...)'"
+								"$$$/iNat/Export/SynonymsExported=Keyword synonyms are always exported see '(Help...)'"
 							)
 						return r
 					end,
@@ -301,7 +296,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = LOC('$$$/iNat/Export/SetIncludeOnExport=Set "Include on Export" attribute ' .. "on keywords"),
+				title = LOC('$$$/iNat/Export/SetIncludeOnExport=Set "Include on Export" attribute on keywords'),
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
 				enabled = bind("syncKeywords"),
@@ -344,8 +339,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 			spacing = f:control_spacing(),
 			f:static_text({
 				title = LOC(
-					"$$$/iNat/Export/SynchronizeEverything=Synchronize everything from iNaturalist, "
-						.. "even if it might not have changed:"
+					"$$$/iNat/Export/SynchronizeEverything=Synchronize everything from iNaturalist, even if it might not have changed:"
 				),
 				height_in_lines = -1,
 				alignment = "right",
@@ -460,7 +454,7 @@ local function checkSettings(settings)
 		if settings.LR_size_megapixels > 4.2 then
 			table.insert(
 				suggestions,
-				LOC("$$$/iNat/Export/LimitMegapixels= - If you need to use " .. '"Megapixels", limit to less than 4.2')
+				LOC('$$$/iNat/Export/LimitMegapixels= - If you need to use "Megapixels", limit to less than 4.2')
 			)
 		end
 	elseif t == "percentage" then
