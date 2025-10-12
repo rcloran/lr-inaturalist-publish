@@ -456,16 +456,16 @@ local function checkSettings(settings)
 	end
 
 	local intro = LOC(
-		"$$$/iNat/Export/ImageSizeWarning=iNaturalist limits image uploads to 2048 pixels "
-		.. "on the long side. The size settings you have chosen may result in larger images, so uploads could "
-		.. "take a longer time than needed, and waste server resources on iNaturalist.\n\nSuggestions in "
-		.. "\"Image Sizing\" section of settings:\n\n"
-	)
+    "$$$/iNat/Export/ImageSizeWarning=iNaturalist limits image uploads to 2048 pixels "
+    .. "on the long side. The size settings you have chosen may result in larger images, so uploads could "
+    .. "take a longer time than needed, and waste server resources on iNaturalist.\n\nSuggestions in "
+    .. '"Image Sizing" section of settings:\n\n'
+)
 
 	local trailer = LOC(
-		"$$$/iNat/Export/PleaseOpenSettings=\n\nPlease open publish service settings again "
-		.. "to edit the image sizing settings."
-	)
+    "$$$/iNat/Export/PleaseOpenSettings=\n\nPlease open publish service settings again "
+    .. "to edit the image sizing settings."
+)
 
 
 	local suggStr = table.concat(suggestions, "\n")
