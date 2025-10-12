@@ -332,8 +332,10 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = LOC("$$$/iNat/Export/SynchronizeEverything=Synchronize everything from iNaturalist, " ..
-					"even if it might not have changed:"),
+				title = LOC(
+					"$$$/iNat/Export/SynchronizeEverything=Synchronize everything from iNaturalist, "
+						.. "even if it might not have changed:"
+				),
 				height_in_lines = -1,
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
@@ -411,44 +413,50 @@ local function checkSettings(settings)
 	local suggestions = {}
 
 	if not settings.LR_size_doNotEnlarge then
-		table.insert(suggestions, LOC("$$$/iNat/Export/SelectDontEnlarge= - Select \"Don't Enlarge\""))
+		table.insert(suggestions, LOC('$$$/iNat/Export/SelectDontEnlarge= - Select "Don\'t Enlarge"'))
 	end
 
 	local t = settings.LR_size_resizeType
 	if not t then
-		table.insert(suggestions,
-			LOC("$$$/iNat/Export/ResizeToFit= - Resize to Fit, Long Edge, 2048 pixels or fewer"))
+		table.insert(suggestions, LOC("$$$/iNat/Export/ResizeToFit= - Resize to Fit, Long Edge, 2048 pixels or fewer"))
 	elseif t == "wh" or t == "dimensions" then
 		local longEdge = math.max(settings.LR_size_maxHeight, settings.LR_size_maxWidth)
 		if longEdge > 2048 then
-			table.insert(suggestions,
-				LOC("$$$/iNat/Export/ConsiderLongEdge= - Consider using \"Long Edge\" instead"))
-			table.insert(suggestions,
-				LOC("$$$/iNat/Export/ReduceImageSize= - Reduce image size to 2048 pixels or fewer"))
+			table.insert(suggestions, LOC('$$$/iNat/Export/ConsiderLongEdge= - Consider using "Long Edge" instead'))
+			table.insert(
+				suggestions,
+				LOC("$$$/iNat/Export/ReduceImageSize= - Reduce image size to 2048 pixels or fewer")
+			)
 		end
 	elseif t == "longEdge" then
 		if settings.LR_size_maxHeight > 2048 then
-			table.insert(suggestions,
-				LOC("$$$/iNat/Export/ReduceLongEdge= - Reduce long edge size to 2048 pixels or fewer"))
+			table.insert(
+				suggestions,
+				LOC("$$$/iNat/Export/ReduceLongEdge= - Reduce long edge size to 2048 pixels or fewer")
+			)
 		end
 	elseif t == "shortEdge" then
-		table.insert(suggestions,
-			LOC("$$$/iNat/Export/UseLongEdgeInstead= - Use \"Long Edge\" instead of \"Short Edge\""))
+		table.insert(suggestions, LOC('$$$/iNat/Export/UseLongEdgeInstead= - Use "Long Edge" instead of "Short Edge"'))
 		if settings.LR_size_maxHeight > 2048 then
-			table.insert(suggestions,
-				LOC("$$$/iNat/Export/ReduceEdgeSize= - Reduce edge size to 2048 pixels or fewer"))
+			table.insert(suggestions, LOC("$$$/iNat/Export/ReduceEdgeSize= - Reduce edge size to 2048 pixels or fewer"))
 		end
 	elseif t == "megapixels" then
-		table.insert(suggestions,
-			LOC("$$$/iNat/Export/UseLongEdgeNotMegapixels= - Use \"Long Edge\" instead of \"Megapixels\""))
+		table.insert(
+			suggestions,
+			LOC('$$$/iNat/Export/UseLongEdgeNotMegapixels= - Use "Long Edge" instead of "Megapixels"')
+		)
 		-- 2048px*2048px = 4.194304 MP
 		if settings.LR_size_megapixels > 4.2 then
-			table.insert(suggestions, LOC("$$$/iNat/Export/LimitMegapixels= - If you need to use " ..
-				"\"Megapixels\", limit to less than 4.2"))
+			table.insert(
+				suggestions,
+				LOC("$$$/iNat/Export/LimitMegapixels= - If you need to use " .. '"Megapixels", limit to less than 4.2')
+			)
 		end
 	elseif t == "percentage" then
-		table.insert(suggestions,
-			LOC("$$$/iNat/Export/UseLongEdgeNotPercentage= - Use \"Long Edge\" instead of \"Percentage\""))
+		table.insert(
+			suggestions,
+			LOC('$$$/iNat/Export/UseLongEdgeNotPercentage= - Use "Long Edge" instead of "Percentage"')
+		)
 	end
 
 	if #suggestions == 0 then
