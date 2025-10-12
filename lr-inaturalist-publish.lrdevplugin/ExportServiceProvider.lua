@@ -38,8 +38,7 @@ local exportServiceProvider = {
 	canExportVideo = false,
 	-- Publish provider options
 	small_icon = "Resources/inaturalist-icon.png",
-	titleForGoToPublishedCollection = LOC(
-		"$$$/iNat/Export/GoToObservations=Go to observations in iNaturalist"),
+	titleForGoToPublishedCollection = LOC("$$$/iNat/Export/GoToObservations=Go to observations in iNaturalist"),
 }
 
 -- called when the user picks this service in the publish dialog
@@ -147,9 +146,12 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 								value = item.title
 							end
 						end
-						return LOC("$$$/iNat/Export/SetSpeciesGuess=Set species guess from keywords " ..
-							"within \"^1\" keyword\n(The setting for which keyword is in the " ..
-							"\"Synchronization\" section)", value)
+						return LOC(
+							"$$$/iNat/Export/SetSpeciesGuess=Set species guess from keywords "
+								.. 'within "^1" keyword\n(The setting for which keyword is in the '
+								.. '"Synchronization" section)',
+							value
+						)
 					end,
 				}),
 				alignment = "right",
@@ -176,8 +178,10 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = LOC("$$$/iNat/Export/SetObservationLocation=Set observation location for photos " ..
-					"in LR private locations"),
+				title = LOC(
+					"$$$/iNat/Export/SetObservationLocation=Set observation location for photos "
+						.. "in LR private locations"
+				),
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
 			}),
@@ -197,8 +201,10 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = LOC("$$$/iNat/Export/SyncDescription=These options control how changes on " ..
-					"iNaturalist are synchronized into your catalog."),
+				title = LOC(
+					"$$$/iNat/Export/SyncDescription=These options control how changes on "
+						.. "iNaturalist are synchronized into your catalog."
+				),
 				height_in_lines = -1,
 				fill_horizontal = 1,
 			}),
@@ -210,8 +216,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 				alignment = "right",
 				text_color = import("LrColor")(0, 0, 1),
 				mouse_down = function()
-					LrHttp.openUrlInBrowser(
-						"https://github.com/rcloran/lr-inaturalist-publish/wiki/Synchronization")
+					LrHttp.openUrlInBrowser("https://github.com/rcloran/lr-inaturalist-publish/wiki/Synchronization")
 				end,
 			}),
 		}),
@@ -268,14 +273,19 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 				title = bind({
 					keys = { "syncKeywordsCommon" },
 					transform = function()
-						local r = LOC(
-							"$$$/iNat/Export/SetCommonNameSynonym=Set common name as a keyword synonym")
+						local r = LOC("$$$/iNat/Export/SetCommonNameSynonym=Set common name as a keyword synonym")
 						if propertyTable.syncKeywordsCommon then
-							r = LOC("$$$/iNat/Export/SetScientificNameSynonym=Set scientific name " ..
-								"as a keyword synonym")
+							r = LOC(
+								"$$$/iNat/Export/SetScientificNameSynonym=Set scientific name "
+									.. "as a keyword synonym"
+							)
 						end
-						r = r .. '\n' .. LOC("$$$/iNat/Export/SynonymsExported=Keyword synonyms are " ..
-							"always exported see '(Help...)'")
+						r = r
+							.. "\n"
+							.. LOC(
+								"$$$/iNat/Export/SynonymsExported=Keyword synonyms are "
+									.. "always exported see '(Help...)'"
+							)
 						return r
 					end,
 				}),
@@ -291,8 +301,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = LOC("$$$/iNat/Export/SetIncludeOnExport=Set \"Include on Export\" attribute " ..
-					"on keywords"),
+				title = LOC('$$$/iNat/Export/SetIncludeOnExport=Set "Include on Export" attribute ' .. "on keywords"),
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
 				enabled = bind("syncKeywords"),
@@ -305,8 +314,10 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = LOC("$$$/iNat/Export/PutKeywordsWithin=Put keywords within this keyword:\nNote: " ..
-					"If this isn't set, keywords can't be properly changed (see \"Help...\")"),
+				title = LOC(
+					"$$$/iNat/Export/PutKeywordsWithin=Put keywords within this keyword:\nNote: "
+						.. "If this isn't set, keywords can't be properly changed (see \"Help...\")"
+				),
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
 				enabled = bind("syncKeywords"),
