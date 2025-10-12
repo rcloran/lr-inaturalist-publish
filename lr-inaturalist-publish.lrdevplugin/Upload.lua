@@ -108,8 +108,12 @@ local function maybeDeleteOld(api, photoId)
 	-- If we get an error here I think it's better to continue
 	-- updates/publishes instead of letting the error bubble up? Just tell
 	-- the user.
-	local msg = LOC("$$$/iNat/Upload/DeleteOldPhotoError=There was a problem deleting the old version of " ..
-		"photo ^1. There may now be duplicate versions on iNaturalist. Error was: ^2", photoId, tostring(result))
+	local msg = LOC(
+		"$$$/iNat/Upload/DeleteOldPhotoError=There was a problem deleting the old version of "
+			.. "photo ^1. There may now be duplicate versions on iNaturalist. Error was: ^2",
+		photoId,
+		tostring(result)
+	)
 
 	LrDialogs.message(LOC("$$$/iNat/Upload/ErrorUpdatingPhoto=Error while updating photo"), msg)
 end
