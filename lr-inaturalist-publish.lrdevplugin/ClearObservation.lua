@@ -7,7 +7,7 @@ local MetadataConst = require("MetadataConst")
 local function clearObservation()
 	local catalog = LrApplication.activeCatalog()
 	local photos = catalog:getTargetPhotos()
-	
+
 	local confirmation = LrDialogs.confirm(
 		LOC("$$$/iNat/Clear/DeleteObservationData=Delete the observation data from ^1 photos?", #photos),
 		LOC(
@@ -15,11 +15,11 @@ local function clearObservation()
 				.. "from these photos"
 		)
 	)
-	
+
 	if confirmation == "cancel" then
 		return
 	end
-	
+
 	catalog:withWriteAccessDo(LOC("$$$/iNat/Clear/ClearObservation=Clear observation"), function(_)
 		for _, photo in pairs(photos) do
 			photo:setPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID, nil)
