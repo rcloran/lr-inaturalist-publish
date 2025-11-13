@@ -10,7 +10,7 @@ local function groupObservation()
 	local photos = catalog:getTargetPhotos()
 
 	if #photos <= 1 then
-		LrDialogs.message("Please select more than 1 photo to group")
+		LrDialogs.message(LOC("$$$/iNat/Group/SelectMorePhotos=Please select more than 1 photo to group"))
 		return
 	end
 
@@ -21,8 +21,11 @@ local function groupObservation()
 		if thisUUID and #thisUUID > 0 then
 			if uuid ~= nil and uuid ~= thisUUID then
 				LrDialogs.message(
-					"Conflicting observations",
-					"Two photos in the selection already belong to different observations"
+					LOC("$$$/iNat/Group/ConflictingObservations=Conflicting observations"),
+					LOC(
+						"$$$/iNat/Group/ConflictingObservationsInfo=Two photos in the selection already "
+							.. "belong to different observations"
+					)
 				)
 				return
 			end
@@ -42,8 +45,8 @@ local function groupObservation()
 			photo:setPropertyForPlugin(_PLUGIN, MetadataConst.ObservationUUID, uuid)
 			photo:setPropertyForPlugin(_PLUGIN, MetadataConst.ObservationURL, url)
 		end
-		local msg = "Grouped %s photos into 1 observation"
-		LrDialogs.showBezel(string.format(msg, #photos))
+		local msg = LOC("$$$/iNat/Group/GroupedPhotos=Grouped ^1 photos into 1 observation", #photos)
+		LrDialogs.showBezel(msg)
 	end)
 end
 

@@ -501,7 +501,7 @@ end
 
 local function sync(functionContext, settings, progress, api, lastSync)
 	if syncInProgress then
-		error("A sync from iNaturalist is already in progress")
+		error(LOC("$$$/iNat/Sync/AlreadyInProgress=A sync from iNaturalist is already in progress"))
 	end
 	syncInProgress = true
 	functionContext:addCleanupHandler(function()
@@ -524,7 +524,7 @@ local function sync(functionContext, settings, progress, api, lastSync)
 		updated_since = toISO8601(lastSync),
 	}
 
-	progress:setCaption("Downloading observations...")
+	progress:setCaption(LOC("$$$/iNat/Sync/DownloadingObservations=Downloading observations..."))
 	local observationIter = api:listObservationsWithPagination(query, DevSettings.syncLimit)
 
 	-- Now apply downloaded data to the catalog
@@ -592,7 +592,9 @@ local function sync(functionContext, settings, progress, api, lastSync)
 
 		if i % 3 == 0 then
 			progress:setPortionComplete(i / totalResults)
-			progress:setCaption(string.format("Updating photos from observation data (%s/%s)", i, totalResults))
+			progress:setCaption(
+				LOC("$$$/iNat/Sync/UpdatingPhotos=Updating photos from observation data (^1/^2)", i, totalResults)
+			)
 		end
 	end
 
@@ -618,7 +620,7 @@ function SyncObservations.sync(settings, progress, api)
 	return LrFunctionContext.callWithContext("SyncObservations.sync", function(context)
 		if not progress then
 			progress = LrDialogs.showModalProgressDialog({
-				title = "Synchronizing from iNaturalist",
+				title = LOC("$$$/iNat/Sync/SyncTitle=Synchronizing from iNaturalist"),
 				cannotCancel = false,
 				functionContext = context,
 			})
@@ -631,8 +633,8 @@ end
 function SyncObservations.fullSync(settings, api)
 	local catalog = LrApplication.activeCatalog()
 	catalog:withProlongedWriteAccessDo({
-		title = "Synchronizing from iNaturalist",
-		pluginName = "iNaturalist Publish Service Provider",
+		title = LOC("$$$/iNat/Sync/SyncTitle=Synchronizing from iNaturalist"),
+		pluginName = LOC("$$$/iNat/Sync/PluginName=iNaturalist Publish Service Provider"),
 		func = function(context, progress)
 			setLastSync(settings, nil) -- Inside transaction, so that if it fails...
 			sync(context, settings, progress, api, nil)
@@ -641,14 +643,15 @@ function SyncObservations.fullSync(settings, api)
 
 	if matchStats["photos"] then
 		-- We had at least one match!
-		local msg = string.format(
-			"%s observations were matched to %s photos, and metadata was set.\n\n"
-				.. "%s photos were matched to a specific photo in an observation, and were added to the Observations collection",
+		local msg = LOC(
+			"$$$/iNat/Sync/CompleteMessage=^1 observations were matched to ^2 photos, and metadata was "
+				.. "set.\n\n^3 photos were matched to a specific photo in an observation, and were added to "
+				.. "the Observations collection",
 			matchStats["observations"],
 			matchStats["photos"],
 			matchStats["collection"] or 0
 		)
-		LrDialogs.message("Synchronization complete", msg, "info")
+		LrDialogs.message(LOC("$$$/iNat/Sync/CompleteTitle=Synchronization complete"), msg, "info")
 	end
 end
 

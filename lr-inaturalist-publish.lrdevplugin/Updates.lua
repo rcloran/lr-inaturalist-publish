@@ -55,7 +55,7 @@ local function download(release, filename)
 	end
 
 	if LrFileUtils.exists(filename) and not LrFileUtils.isWritable(filename) then
-		error("Cannot write to download file")
+		error(LOC("$$$/iNat/Updates/CannotWriteFile=Cannot write to download file"))
 	end
 
 	local f = io.open(filename, "wb")
@@ -68,7 +68,7 @@ local function extract(filename, workdir)
 	logger:trace(cmd)
 	local ret = LrTasks.execute(cmd)
 	if ret ~= 0 then
-		error("Could not extract downloaded release file")
+		error(LOC("$$$/iNat/Updates/CannotExtract=Could not extract downloaded release file"))
 	end
 end
 
@@ -93,7 +93,7 @@ local function downloadAndInstall(ctx, release)
 	end)
 	local r = LrFileUtils.createDirectory(workdir)
 	if not r then
-		error("Cannot create temporary directory")
+		error(LOC("$$$/iNat/Updates/CannotCreateDir=Cannot create temporary directory"))
 	end
 	local zip = LrPathUtils.child(workdir, "download.zip")
 
@@ -108,7 +108,10 @@ local function showUpdateDialog(release, force)
 		prefs.lastUpdateOffered = release.tag_name
 	end
 
-	local info = "An update is available for the iNaturalist Publish Plugin. Would you like to download it now?"
+	local info = LOC(
+		"$$$/iNat/Updates/UpdateAvailableInfo=An update is available for the iNaturalist Publish Plugin. "
+			.. "Would you like to download it now?"
+	)
 	if release.body and #release.body > 0 then
 		info = info .. "\n\n" .. release.body
 	end
@@ -119,12 +122,12 @@ local function showUpdateDialog(release, force)
 	end
 
 	local toDo = LrDialogs.promptForActionWithDoNotShow({
-		message = "iNaturalist Publish Plugin update available",
+		message = LOC("$$$/iNat/Updates/UpdateAvailableTitle=iNaturalist Publish Plugin update available"),
 		info = info,
 		actionPrefKey = actionPrefKey,
 		verbBtns = {
-			{ label = "Download", verb = "download" },
-			{ label = "Ignore", verb = "ignore" },
+			{ label = LOC("$$$/iNat/Updates/DownloadButton=Download"), verb = "download" },
+			{ label = LOC("$$$/iNat/Updates/IgnoreButton=Ignore"), verb = "ignore" },
 		},
 	})
 	if toDo == "download" then
@@ -136,7 +139,11 @@ local function showUpdateDialog(release, force)
 
 		if LrTasks.execute("tar --help") == 0 then
 			LrFunctionContext.callWithContext("downloadAndInstall", downloadAndInstall, release)
-			LrDialogs.message("iNaturalist Publish Plugin update installed", "Please restart Lightroom", "info")
+			LrDialogs.message(
+				LOC("$$$/iNat/Updates/UpdateInstalledTitle=iNaturalist Publish Plugin update installed"),
+				LOC("$$$/iNat/Updates/UpdateInstalledInfo=Please restart Lightroom"),
+				"info"
+			)
 		else
 			-- We need the user to download and extract the zip file
 			LrHttp.openUrlInBrowser(release.assets[1].browser_download_url)
@@ -183,8 +190,12 @@ function Updates.forceUpdate()
 
 		if v then
 			LrDialogs.message(
-				"No updates available",
-				string.format("You have the most recent version of the iNaturalist Publish Plugin, %s", v),
+				LOC("$$$/iNat/Updates/NoUpdatesTitle=No updates available"),
+				LOC(
+					"$$$/iNat/Updates/NoUpdatesInfo=You have the most recent version of the iNaturalist "
+						.. "Publish Plugin, ^1",
+					v
+				),
 				"info"
 			)
 		end

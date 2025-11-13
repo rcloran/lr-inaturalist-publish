@@ -38,7 +38,7 @@ local exportServiceProvider = {
 	canExportVideo = false,
 	-- Publish provider options
 	small_icon = "Resources/inaturalist-icon.png",
-	titleForGoToPublishedCollection = "Go to observations in iNaturalist",
+	titleForGoToPublishedCollection = LOC("$$$/iNat/Export/GoToPublished=Go to observations in iNaturalist"),
 }
 
 -- called when the user picks this service in the publish dialog
@@ -109,7 +109,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 	end)
 
 	local account = {
-		title = "iNaturalist Account",
+		title = LOC("$$$/iNat/Export/AccountTitle=iNaturalist Account"),
 		synopsis = bind("accountStatus"),
 		f:row({
 			spacing = f:control_spacing(),
@@ -119,7 +119,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 				fill_horizontal = 1,
 			}),
 			f:push_button({
-				title = "Log in",
+				title = LOC("$$$/iNat/Export/LogInButton=Log in"),
 				enabled = bind("loginButtonEnabled"),
 				action = function()
 					LrTasks.startAsyncTask(function()
@@ -130,7 +130,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		}),
 	}
 	local options = {
-		title = "Export options",
+		title = LOC("$$$/iNat/Export/OptionsTitle=Export options"),
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
@@ -146,10 +146,12 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 								value = item.title
 							end
 						end
-						return 'Set species guess from keywords within "'
-							.. value
-							.. '" keyword\n'
-							.. '(The setting for which keyword is in the "Synchronization" section)'
+						return LOC(
+							"$$$/iNat/Export/SpeciesGuessInfo=Set species guess from keywords within "
+								.. '"^1" keyword\n(The setting for which keyword is in the '
+								.. '"Synchronization" section)',
+							value
+						)
 					end,
 				}),
 				alignment = "right",
@@ -176,34 +178,40 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = "Set observation location for photos in LR private locations",
+				title = LOC(
+					"$$$/iNat/Export/PrivateLocationLabel=Set observation location for photos in LR "
+						.. "private locations"
+				),
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
 			}),
 			f:popup_menu({
 				value = bind("uploadPrivateLocation"),
 				items = {
-					{ title = "Public", value = "public" },
-					{ title = "Obscured", value = "obscured" },
-					{ title = "Private", value = "private" },
-					{ title = "Don't set", value = "unset" },
+					{ title = LOC("$$$/iNat/Export/LocationPublic=Public"), value = "public" },
+					{ title = LOC("$$$/iNat/Export/LocationObscured=Obscured"), value = "obscured" },
+					{ title = LOC("$$$/iNat/Export/LocationPrivate=Private"), value = "private" },
+					{ title = LOC("$$$/iNat/Export/LocationUnset=Don't set"), value = "unset" },
 				},
 			}),
 		}),
 	}
 	local synchronization = {
-		title = "iNaturalist Synchronization",
+		title = LOC("$$$/iNat/Export/SyncTitle=iNaturalist Synchronization"),
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = "These options control how changes on iNaturalist are synchronized into your catalog.",
+				title = LOC(
+					"$$$/iNat/Export/SyncIntro=These options control how changes on iNaturalist are "
+						.. "synchronized into your catalog."
+				),
 				height_in_lines = -1,
 				fill_horizontal = 1,
 			}),
 		}),
 		f:row({
 			f:static_text({
-				title = "Help...",
+				title = LOC("$$$/iNat/Export/HelpLink=Help..."),
 				width_in_chars = 0,
 				alignment = "right",
 				text_color = import("LrColor")(0, 0, 1),
@@ -215,7 +223,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = "Only search for photos to sync from iNaturalist in",
+				title = LOC("$$$/iNat/Export/SyncSearchLabel=Only search for photos to sync from iNaturalist in"),
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
 			}),
@@ -227,7 +235,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = "Synchronize from iNaturalist during every publish",
+				title = LOC("$$$/iNat/Export/SyncOnPublishLabel=Synchronize from iNaturalist during every publish"),
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
 			}),
@@ -238,7 +246,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = "Update keywords from iNaturalist data",
+				title = LOC("$$$/iNat/Export/SyncKeywordsLabel=Update keywords from iNaturalist data"),
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
 			}),
@@ -249,7 +257,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = "Use common names for keywords",
+				title = LOC("$$$/iNat/Export/SyncCommonNamesLabel=Use common names for keywords"),
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
 				enabled = bind("syncKeywords"),
@@ -267,9 +275,14 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 					transform = function()
 						local r = "Set common name as a keyword synonym"
 						if propertyTable.syncKeywordsCommon then
-							r = "Set scientific name as a keyword synonym"
+							r = LOC("$$/iNat/Export/SyncSynonymScientific=Set scientific name as a keyword synonym")
 						end
-						r = r .. '\nKeyword synonyms are always exported (see "Help...")'
+						r = r
+							.. "\n"
+							.. LOC(
+								"$$/iNat/Export/SyncSynonymNote=Keyword synonyms are always exported "
+									.. '(see "Help...")'
+							)
 						return r
 					end,
 				}),
@@ -285,7 +298,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = 'Set "Include on Export" attribute on keywords',
+				title = LOC('$$/iNat/Export/SyncIncludeOnExportLabel=Set "Include on Export" attribute on keywords'),
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
 				enabled = bind("syncKeywords"),
@@ -298,8 +311,10 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = "Put keywords within this keyword:\n"
-					.. "Note: If this isn't set, keywords can't be properly changed (see \"Help...\")",
+				title = LOC(
+					"$$$/iNat/Export/SyncKeywordsRootLabel=Put keywords within this keyword:\nNote: If this "
+						.. "isn't set, keywords can't be properly changed (see \"Help...\")"
+				),
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
 				enabled = bind("syncKeywords"),
@@ -313,7 +328,7 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = "Set title to observation identification",
+				title = LOC("$$$/iNat/Export/SyncTitleLabel=Set title to observation identification"),
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
 			}),
@@ -325,14 +340,17 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = "Synchronize everything from iNaturalist, even if it might not have changed:",
+				title = LOC(
+					"$$$/iNat/Export/FullSyncLabel=Synchronize everything from iNaturalist, even if it might "
+						.. "not have changed:"
+				),
 				height_in_lines = -1,
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
 				enabled = bind("LR_editingExistingPublishConnection"),
 			}),
 			f:push_button({
-				title = "Full synchronization now",
+				title = LOC("$$$/iNat/Export/FullSyncButton=Full synchronization now"),
 				action = function()
 					LrTasks.startAsyncTask(function()
 						SyncObservations.fullSync(propertyTable)
@@ -344,14 +362,14 @@ function exportServiceProvider.sectionsForTopOfDialog(f, propertyTable)
 		f:row({
 			spacing = f:control_spacing(),
 			f:static_text({
-				title = "Synchronize changes since last sync:",
+				title = LOC("$$$/iNat/Export/SyncNowLabel=Synchronize changes since last sync:"),
 				height_in_lines = -1,
 				alignment = "right",
 				width = LrView.share("inaturalistSyncLabel"),
 				enabled = bind("LR_editingExistingPublishConnection"),
 			}),
 			f:push_button({
-				title = "Synchronize now",
+				title = LOC("$$$/iNat/Export/SyncNowButton=Synchronize now"),
 				action = function()
 					LrTasks.startAsyncTask(function()
 						SyncObservations.sync(propertyTable)
@@ -388,7 +406,7 @@ end
 
 function exportServiceProvider.getCollectionBehaviorInfo(_)
 	return {
-		defaultCollectionName = "Observations",
+		defaultCollectionName = LOC("$$$/iNat/Export/DefaultCollectionName=Observations"),
 		defaultCollectionCanBeDeleted = false,
 		canAddCollection = false,
 		maxCollectionSetDepth = 0,
@@ -403,52 +421,85 @@ local function checkSettings(settings)
 	local suggestions = {}
 
 	if not settings.LR_size_doNotEnlarge then
-		table.insert(suggestions, ' - Select "Don\'t Enlarge"')
+		table.insert(suggestions, LOC('$$$/iNat/Export/SuggestionDoNotEnlarge= - Select "Don\'t Enlarge"'))
 	end
 
 	local t = settings.LR_size_resizeType
 	if not t then
-		table.insert(suggestions, " - Resize to Fit, Long Edge, 2048 pixels or fewer")
+		table.insert(
+			suggestions,
+			LOC("$$$/iNat/Export/SuggestionResize= - Resize to Fit, Long Edge, 2048 pixels or fewer")
+		)
 	elseif t == "wh" or t == "dimensions" then
 		local longEdge = math.max(settings.LR_size_maxHeight, settings.LR_size_maxWidth)
 		if longEdge > 2048 then
-			table.insert(suggestions, ' - Consider using "Long Edge" instead')
-			table.insert(suggestions, " - Reduce image size to 2048 pixels or fewer")
+			table.insert(
+				suggestions,
+				LOC('$$$/iNat/Export/SuggestionUseLongEdge= - Consider using "Long Edge" instead')
+			)
+			table.insert(
+				suggestions,
+				LOC("$$$/iNat/Export/SuggestionReduceSize= - Reduce image size to 2048 pixels or fewer")
+			)
 		end
 	elseif t == "longEdge" then
 		if settings.LR_size_maxHeight > 2048 then
-			table.insert(suggestions, " - Reduce long edge size to 2048 pixels or fewer")
+			table.insert(
+				suggestions,
+				LOC("$$$/iNat/Export/SuggestionReduceLongEdge= - Reduce long edge size to 2048 pixels or fewer")
+			)
 		end
 	elseif t == "shortEdge" then
-		table.insert(suggestions, ' - Use "Long Edge" instead of "Short Edge"')
+		table.insert(
+			suggestions,
+			LOC('$$$/iNat/Export/SuggestionLongEdgeInstead= - Use "Long Edge" instead of "Short Edge"')
+		)
 		if settings.LR_size_maxHeight > 2048 then
-			table.insert(suggestions, " - Reduce edge size to 2048 pixels or fewer")
+			table.insert(
+				suggestions,
+				LOC("$$$/iNat/Export/SuggestionReduceEdge= - Reduce edge size to 2048 pixels or fewer")
+			)
 		end
 	elseif t == "megapixels" then
-		table.insert(suggestions, ' - Use "Long Edge" instead of "Megapixels"')
+		table.insert(
+			suggestions,
+			LOC('$$$/iNat/Export/SuggestionLongEdgeNotMP= - Use "Long Edge" instead of "Megapixels"')
+		)
 		-- 2048px*2048px = 4.194304 MP
 		if settings.LR_size_megapixels > 4.2 then
-			table.insert(suggestions, ' - If you need to use "Megapixels", limit to less than 4.2')
+			table.insert(
+				suggestions,
+				LOC('$$$/iNat/Export/SuggestionLimitMP= - If you need to use "Megapixels", limit to less than 4.2')
+			)
 		end
 	elseif t == "percentage" then
-		table.insert(suggestions, ' - Use "Long Edge" instead of "Percentage"')
+		table.insert(
+			suggestions,
+			LOC('$$$/iNat/Export/SuggestionLongEdgeNotPercent= - Use "Long Edge" instead of "Percentage"')
+		)
 	end
 
 	if #suggestions == 0 then
 		return
 	end
 
-	local intro = "iNaturalist limits image uploads to 2048 pixels on the long side. The size settings you have "
-		.. "chosen may result in larger images, so uploads could take a longer time than needed, and waste server "
-		.. 'resources on iNaturalist.\n\nSuggestions in "Image Sizing" section of settings:\n\n'
+	local intro = LOC(
+		"$$$/iNat/Export/SizingWarningIntro=iNaturalist limits image uploads to 2048 pixels on the long "
+			.. "side. The size settings you have chosen may result in larger images, so uploads could take "
+			.. "a longer time than needed, and waste server resources on iNaturalist.\n\nSuggestions in "
+			.. '"Image Sizing" section of settings:\n\n'
+	)
 
-	local trailer = "\n\nPlease open publish service settings again to edit the image sizing settings."
+	local trailer = LOC(
+		"$$$/iNat/Export/SizingWarningTrailer=\n\nPlease open publish service settings again to edit the "
+			.. "image sizing settings."
+	)
 
 	local suggStr = table.concat(suggestions, "\n")
 	LrDialogs.resetDoNotShowFlag(suggStr)
 
 	LrDialogs.messageWithDoNotShow({
-		message = "Image sizing too large",
+		message = LOC("$$$/iNat/Export/SizingWarningTitle=Image sizing too large"),
 		info = intro .. suggStr .. trailer,
 		actionPrefKey = sha2.sha256(suggStr),
 	})
@@ -459,10 +510,12 @@ function exportServiceProvider.didCreateNewPublishService(publishSettings, info)
 	publishSettings.LR_publishService = info.publishService
 
 	local f = LrView.osFactory()
-	local mainMsg = "This will take some time."
+	local mainMsg = LOC("$$$/iNat/Export/SyncWillTakeTime=This will take some time.")
 	if publishSettings.syncOnPublish then
-		mainMsg = "This will take some time. If you do not do this now it will happen "
-			.. "automatically the first time you publish using this plugin."
+		mainMsg = LOC(
+			"$$$/iNat/Export/SyncWillTakeTimeAuto=This will take some time. If you do not do this now it "
+				.. "will happen automatically the first time you publish using this plugin."
+		)
 	end
 	local c = {
 		spacing = f:dialog_spacing(),
@@ -475,15 +528,17 @@ function exportServiceProvider.didCreateNewPublishService(publishSettings, info)
 	}
 	if publishSettings.syncSearchIn == -1 then
 		c[#c + 1] = f:static_text({
-			title = "You have not set a collection to which to limit the search "
-				.. "for matching photos. This may result in a low number of matches.",
+			title = LOC(
+				"$$$/iNat/Export/NoCollectionWarning=You have not set a collection to which to limit the "
+					.. "search for matching photos. This may result in a low number of matches."
+			),
 			fill_horizontal = 1,
 			width_in_chars = 50,
 			height_in_lines = 2,
 		})
 	end
 	local r = LrDialogs.presentModalDialog({
-		title = "Perform synchronization from iNaturalist now?",
+		title = LOC("$$$/iNat/Export/PerformSyncNowTitle=Perform synchronization from iNaturalist now?"),
 		contents = f:column(c),
 	})
 

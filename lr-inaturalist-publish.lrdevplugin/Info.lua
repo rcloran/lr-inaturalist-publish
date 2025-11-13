@@ -1,11 +1,11 @@
 local menuItems = {
 	{
-		title = "Group photos into observation",
+		title = LOC("$$$/iNat/Menu/GroupPhotos=Group photos into observation"),
 		file = "GroupObservation.lua",
 		enabledWhen = "photosSelected",
 	},
 	{
-		title = "Clear observation",
+		title = LOC("$$$/iNat/Menu/ClearObservation=Clear observation"),
 		file = "ClearObservation.lua",
 		enabledWhen = "photosSelected",
 	},
@@ -19,14 +19,14 @@ return {
 	LrSdkVersion = 6,
 
 	LrToolkitIdentifier = "net.rcloran.lr-inaturalist-publish",
-	LrPluginName = "iNaturalist",
+	LrPluginName = LOC("$$$/iNat/PluginName=iNaturalist"),
 
 	LrInitPlugin = "InitPlugin.lua",
 
 	LrPluginInfoProvider = "PluginInfoProvider.lua",
 
 	LrExportServiceProvider = {
-		title = "iNaturalist",
+		title = LOC("$$$/iNat/ExportService/Title=iNaturalist"),
 		file = "ExportServiceProvider.lua",
 	},
 

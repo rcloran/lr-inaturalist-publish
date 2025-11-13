@@ -108,15 +108,14 @@ local function maybeDeleteOld(api, photoId)
 	-- If we get an error here I think it's better to continue
 	-- updates/publishes instead of letting the error bubble up? Just tell
 	-- the user.
-	local msg = string.format(
-		"There was a problem deleting the old version of photo %s. "
-			.. "There may now be duplicate versions on iNaturalist. "
-			.. "Error was: %s",
+	local msg = LOC(
+		"$$$/iNat/Upload/DeleteOldPhotoError=There was a problem deleting the old version of photo ^1. "
+			.. "There may now be duplicate versions on iNaturalist. Error was: ^2",
 		photoId,
 		result
 	)
 
-	LrDialogs.message("Error while updating photo", msg)
+	LrDialogs.message(LOC("$$$/iNat/Upload/DeleteOldPhotoTitle=Error while updating photo"), msg)
 end
 
 function Upload.processRenderedPhotos(_, exportContext)
@@ -127,7 +126,7 @@ function Upload.processRenderedPhotos(_, exportContext)
 	local api = INaturalistAPI:new(exportSettings.login)
 	if exportSettings.syncOnPublish then
 		local progress = LrProgressScope({
-			title = "Synchronizing observations from iNaturalist",
+			title = LOC("$$$/iNat/Upload/SyncingObservations=Synchronizing observations from iNaturalist"),
 		})
 		local success, err = LrTasks.pcall(SyncObservations.sync, exportSettings, progress, api)
 		if not success then
@@ -140,7 +139,7 @@ function Upload.processRenderedPhotos(_, exportContext)
 
 	local nPhotos = exportSession:countRenditions()
 	local progressScope = exportContext:configureProgress({
-		title = string.format("Publishing %i photos to iNaturalist", nPhotos),
+		title = LOC("$$$/iNat/Upload/PublishingPhotos=Publishing ^1 photos to iNaturalist", nPhotos),
 	})
 
 	for i, rendition in exportContext:renditions({ stopIfCanceled = true }) do

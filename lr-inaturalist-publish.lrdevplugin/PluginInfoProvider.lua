@@ -12,12 +12,12 @@ function Info.sectionsForTopOfDialog(f, _)
 		prefs.checkForUpdates = true
 	end
 	local settings = {
-		title = "Plugin options",
+		title = LOC("$$$/iNat/PluginInfo/OptionsTitle=Plugin options"),
 		bind_to_object = prefs,
 
 		f:row({
 			f:static_text({
-				title = "Automatically check for updates",
+				title = LOC("$$$/iNat/PluginInfo/AutoCheckUpdates=Automatically check for updates"),
 				alignment = "right",
 				width = LrView.share("inaturalistPrefsLabel"),
 			}),
@@ -29,27 +29,27 @@ function Info.sectionsForTopOfDialog(f, _)
 
 		f:row({
 			f:static_text({
-				title = "Check for updates now",
+				title = LOC("$$$/iNat/PluginInfo/CheckUpdatesNow=Check for updates now"),
 				alignment = "right",
 				width = LrView.share("inaturalistPrefsLabel"),
 			}),
 			f:push_button({
-				title = "Go",
+				title = LOC("$$$/iNat/PluginInfo/GoButton=Go"),
 				action = Updates.forceUpdate,
 			}),
 		}),
 
 		f:row({
 			f:static_text({
-				title = "Log level",
+				title = LOC("$$$/iNat/PluginInfo/LogLevel=Log level"),
 				alignment = "right",
 				width = LrView.share("inaturalistPrefsLabel"),
 			}),
 			f:popup_menu({
 				value = bind("logLevel"),
 				items = {
-					{ title = "None", value = nil },
-					{ title = "Trace", value = "trace" },
+					{ title = LOC("$$$/iNat/PluginInfo/LogLevelNone=None"), value = nil },
+					{ title = LOC("$$$/iNat/PluginInfo/LogLevelTrace=Trace"), value = "trace" },
 				},
 			}),
 		}),

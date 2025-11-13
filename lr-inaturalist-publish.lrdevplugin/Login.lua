@@ -15,13 +15,13 @@ function Login.verifyLogin(propertyTable)
 	logger:trace("Login.verifyLogin()")
 
 	if propertyTable.login and #propertyTable.login > 0 and LrPasswords.retrieve(propertyTable.login) then
-		propertyTable.accountStatus = "Logged in as " .. propertyTable.login
+		propertyTable.accountStatus = LOC("$$$/iNat/Login/LoggedInAs=Logged in as ^1", propertyTable.login)
 		propertyTable.loginButtonEnabled = false
 		propertyTable.LR_cantExportBecause = nil
 	else
-		propertyTable.accountStatus = "Not logged in"
+		propertyTable.accountStatus = LOC("$$$/iNat/Login/NotLoggedIn=Not logged in")
 		propertyTable.loginButtonEnabled = true
-		propertyTable.LR_cantExportBecause = "Not logged in to iNaturalist"
+		propertyTable.LR_cantExportBecause = LOC("$$$/iNat/Login/CantExport=Not logged in to iNaturalist")
 	end
 end
 
@@ -67,8 +67,11 @@ function Login.handleAuthRedirect(url)
 		local propertyTable = Login.inProgressLogin
 		if not (propertyTable and propertyTable.pkceChallenge) then
 			LrDialogs.message(
-				"Unexpected iNaturalist login received",
-				"No login is in progress. Leave the publishing manager open while authorizing with iNaturalist in your browser."
+				LOC("$$$/iNat/Login/UnexpectedLoginTitle=Unexpected iNaturalist login received"),
+				LOC(
+					"$$$/iNat/Login/UnexpectedLoginInfo=No login is in progress. Leave the publishing "
+						.. "manager open while authorizing with iNaturalist in your browser."
+				)
 			)
 			return
 		end
